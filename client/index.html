@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CosaNostra | منظومة إدارة العيادات</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+
+    <!-- ====== LOGIN SCREEN ====== -->
+    <div class="login-screen" id="login-screen">
+        <div class="login-backdrop-glow"></div>
+        <div class="login-card">
+            <div class="login-logo" id="login-logo-container">
+                <img src="logo.svg" alt="Logo" class="app-logo-img" style="height: 64px; object-fit: contain;">
+            </div>
+            <div class="login-brand" id="login-brand-name">
+                <h1 class="decorated-brand">CosaNostra</h1>
+                <p>منظومة إدارة العيادات</p>
+            </div>
+            <div class="login-divider"></div>
+            <h3 class="login-title">تسجيل الدخول</h3>
+            <p class="login-subtitle">أدخل كلمة المرور الخاصة بك للوصول إلى المنظومة</p>
+
+            <div class="login-role-tabs">
+                <button class="role-tab active" id="tab-admin" onclick="setLoginRole('admin')">
+                    <i class="fa-solid fa-user-shield"></i> مدير
+                </button>
+                <button class="role-tab" id="tab-supervisor" onclick="setLoginRole('supervisor')">
+                    <i class="fa-solid fa-user-tie"></i> مشرف
+                </button>
+                <button class="role-tab" id="tab-employee" onclick="setLoginRole('employee')">
+                    <i class="fa-solid fa-user-nurse"></i> موظف
+                </button>
+            </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="login-input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="login-password" class="login-input" placeholder="أدخل كلمة المرور..." autocomplete="current-password" required>
+                    <button type="button" class="toggle-pwd-btn" onclick="toggleLoginPwd()">
+                        <i class="fa-solid fa-eye" id="pwd-eye-icon"></i>
+                    </button>
+                </div>
+                <div class="login-error" id="login-error">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="login-error-msg">كلمة المرور غير صحيحة</span>
+                </div>
+                <button type="submit" class="btn btn-primary login-btn">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    دخول إلى المنظومة
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div class="app-layout" id="app-layout">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo" id="sidebar-logo-container">
+                    <img src="logo.svg" alt="Logo" class="app-logo-img pulse-icon" style="height: 38px; object-fit: contain;">
+                </div>
+                <div class="brand-name">
+                    <h2 data-i18n="system-brand-name" class="decorated-brand">CosaNostra</h2>
+                    <span data-i18n="system-brand-subtitle">منظومة إدارة العيادات</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <ul>
+                    <li class="active" data-panel="dashboard">
+                        <a href="#dashboard">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span data-i18n="nav-dashboard">لوحة التحكم</span>
+                        </a>
+                    </li>
+                    <li data-panel="patients">
+                        <a href="#patients">
+                            <i class="fa-solid fa-hospital-user"></i>
+                            <span data-i18n="nav-patients">المرضى</span>
+                        </a>
+                    </li>
+                    <li data-panel="appointments">
+                        <a href="#appointments">
+                            <i class="fa-solid fa-calendar-check"></i>
+                            <span data-i18n="nav-appointments">المواعيد</span>
+                        </a>
+                    </li>
+                    <li data-panel="doctors">
+                        <a href="#doctors">
+                            <i class="fa-solid fa-user-md"></i>
+                            <span data-i18n="nav-doctors">الأطباء</span>
+                        </a>
+                    </li>
+                    <li data-panel="billing">
+                        <a href="#billing">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                            <span data-i18n="nav-billing">الفواتير والمالية</span>
+                        </a>
+                    </li>
+                    <li data-panel="inventory">
+                        <a href="#inventory">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                            <span data-i18n="nav-inventory">الجرد والتقارير</span>
+                        </a>
+                    </li>
+                    <li data-panel="settings">
+                        <a href="#settings">
+                            <i class="fa-solid fa-gear"></i>
+                            <span data-i18n="nav-settings">الإعدادات</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=100&q=80" alt="Admin Avatar" class="avatar">
+                    <div class="user-info">
+                        <h4 data-i18n="user-name">د. أحمد سلامة</h4>
+                        <span data-i18n="user-role">مدير المصحة</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="main-content">
+            <!-- Top Navbar -->
+            <header class="navbar">
+                <div class="navbar-left">
+                    <button class="toggle-sidebar" id="toggle-sidebar-btn" aria-label="Toggle Sidebar">
+                        <i class="fa-solid fa-bars-staggered"></i>
+                    </button>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="global-search" data-i18n-placeholder="search-placeholder" placeholder="بحث سريع عن مريض أو طبيب...">
+                    </div>
+                </div>
+
+                <div class="navbar-right">
+                    <!-- Quick Stats Badge -->
+                    <div class="live-status-badge">
+                        <span class="pulse-dot"></span>
+                        <span data-i18n="live-indicator">المصحة نشطة حالياً</span>
+                    </div>
+
+                    <!-- Language Switcher -->
+                    <button class="nav-action-btn" id="lang-toggle-btn" title="تغيير اللغة / Change Language">
+                        <i class="fa-solid fa-globe"></i>
+                        <span id="lang-label">EN</span>
+                    </button>
+
+                    <!-- Dark Mode Toggle -->
+                    <button class="nav-action-btn" id="theme-toggle-btn" title="تغيير المظهر">
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+
+                    <!-- Notifications -->
+                    <div class="notifications-dropdown" id="notifications-wrapper">
+                        <button class="nav-action-btn" id="noti-btn" title="التنبيهات والمواعيد المعلقة">
+                            <i class="fa-solid fa-bell"></i>
+                            <span class="badge" id="noti-count">0</span>
+                        </button>
+                        <!-- Dropdown Panel -->
+                        <div class="noti-panel" id="noti-panel">
+                            <div class="noti-panel-header">
+                                <h4><i class="fa-solid fa-bell-ring"></i> إشعارات النظام</h4>
+                                <button class="noti-close-btn" id="noti-close-btn"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                            <div class="noti-list" id="noti-list">
+                                <!-- populated by JS -->
+                            </div>
+                            <div class="noti-panel-footer">
+                                <button class="btn btn-sm btn-outline nav-to-btn" data-panel="appointments" id="noti-view-all-btn">
+                                    <i class="fa-solid fa-calendar-days"></i> عرض كل المواعيد
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logout Button -->
+                    <button class="nav-action-btn" id="logout-btn" title="تسجيل الخروج" style="color: var(--color-rose)">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dynamic Content Panels Container -->
+            <div class="content-container">
+
+                <!-- 1. DASHBOARD PANEL -->
+                <section class="content-panel active" id="dashboard-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1 data-i18n="dash-title">نظرة عامة على المصحة</h1>
+                            <p data-i18n="dash-subtitle">مرحباً بك مجدداً، إليك ملخص نشاط اليوم.</p>
+                        </div>
+                        <div class="date-display" id="current-date-display">
+                            <i class="fa-regular fa-calendar-days"></i>
+                            <span>الأحد، 31 مايو 2026</span>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card" id="dash-card-total-patients" data-action="patients" title="عرض المرضى">
+                            <div class="stat-icon-wrapper blue-gradient">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label" data-i18n="stat-total-patients">إجمالي المرضى</span>
+                                <h3 class="stat-value" id="dash-total-patients">1,248</h3>
+                                <span class="stat-trend trend-up"><i class="fa-solid fa-arrow-trend-up"></i> +12% <span data-i18n="trend-week">منذ الأسبوع الماضي</span></span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" id="dash-card-today-appointments" data-action="appointments" data-filter="today" title="عرض مواعيد اليوم">
+                            <div class="stat-icon-wrapper emerald-gradient">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label" data-i18n="stat-appointments">مواعيد اليوم</span>
+                                <h3 class="stat-value" id="dash-today-appointments">42</h3>
+                                <span class="stat-trend trend-up"><i class="fa-solid fa-arrow-trend-up"></i> +5% <span data-i18n="trend-today">مقارنة بأمس</span></span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" id="dash-card-today-revenue" data-action="billing" data-filter="today" title="عرض الإيرادات اليومية">
+                            <div class="stat-icon-wrapper gold-gradient">
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label" data-i18n="stat-revenue">إيرادات اليوم</span>
+                                <h3 class="stat-value" id="dash-today-revenue">4,850 د.ل</h3>
+                                <span class="stat-trend trend-up"><i class="fa-solid fa-arrow-trend-up"></i> +18% <span data-i18n="trend-month">هذا الشهر</span></span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" id="dash-card-active-doctors" data-action="doctors" title="عرض الأطباء">
+                            <div class="stat-icon-wrapper purple-gradient">
+                                <i class="fa-solid fa-user-md"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label" data-i18n="stat-active-doctors">الأطباء المتواجدون</span>
+                                <h3 class="stat-value" id="dash-active-doctors">8 / 12</h3>
+                                <span class="stat-trend trend-neutral"><i class="fa-solid fa-minus"></i> <span data-i18n="trend-stable">مستقر</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Action Shortcuts Card -->
+                    <div class="card shortcuts-card" style="margin-bottom: 24px; border: 1px solid var(--border-color, rgba(255,255,255,0.06)); background: var(--card-bg, rgba(30,41,59,0.25)); backdrop-filter: blur(8px);">
+                        <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.06); padding: 16px 20px;">
+                            <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-bolt" style="color: var(--primary-color, #0d9488);"></i>
+                                <span data-i18n="quick-shortcuts">اختصارات الوصول السريع</span>
+                            </h3>
+                        </div>
+                        <div class="card-body" style="padding: 20px;">
+                            <div class="shortcuts-grid" id="dashboard-shortcuts-grid">
+                                <!-- Dynamic shortcut buttons based on role -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Dashboard Sections -->
+                    <div class="dashboard-sections">
+                        <!-- Chart section -->
+                        <div class="card chart-card">
+                            <div class="card-header">
+                                <h3 data-i18n="chart-title">إحصائيات المراجعات والزيارات الأسبوعية</h3>
+                                <div class="chart-actions">
+                                    <span class="legend-dot patients-dot"></span> <span data-i18n="legend-visits">الزيارات</span>
+                                    <span class="legend-dot revenue-dot"></span> <span data-i18n="legend-revenue">الإيرادات (×100)</span>
+                                </div>
+                                <select id="chart-view-toggle" class="form-control chart-view-toggle">
+                                    <option value="weekly">Weekly / أسبوعي</option>
+                                    <option value="daily">Daily / يومي</option>
+                                    <option value="monthly">Monthly / شهري</option>
+                                </select>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container-wrapper">
+                                    <!-- Dynamic SVG Line Chart -->
+                                    <svg viewBox="0 0 600 220" class="svg-chart" id="weekly-chart">
+                                        <!-- Grid Lines -->
+                                        <line x1="40" y1="20" x2="580" y2="20" stroke="var(--border-color)" stroke-dasharray="4" />
+                                        <line x1="40" y1="70" x2="580" y2="70" stroke="var(--border-color)" stroke-dasharray="4" />
+                                        <line x1="40" y1="120" x2="580" y2="120" stroke="var(--border-color)" stroke-dasharray="4" />
+                                        <line x1="40" y1="170" x2="580" y2="170" stroke="var(--border-color)" />
+                                        
+                                        <!-- Chart lines / bars will be populated via app.js -->
+                                        <g id="chart-paths"></g>
+                                    </svg>
+                                </div>
+                                <div class="chart-x-labels" id="chart-labels">
+                                    <!-- Populated dynamically based on language -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini tables / activity log -->
+                        <div class="card list-card">
+                            <div class="card-header">
+                                <h3 data-i18n="recent-visits-title">المواعيد القادمة العاجلة</h3>
+                                <button class="btn btn-sm btn-outline nav-to-btn" data-panel="appointments" data-i18n="view-all">عرض الكل</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table min-table">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="th-patient">العميل / الصيدلية</th>
+                                                <th data-i18n="th-doctor">الصنف الدوائي</th>
+                                                <th data-i18n="th-time">الوقت</th>
+                                                <th data-i18n="th-status">الحالة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dash-recent-appointments-tbody">
+                                            <!-- Dynamically filled by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. PATIENTS PANEL -->
+                <section class="content-panel" id="patients-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1 data-i18n="patients-title">إدارة سجلات الصيدليات والعملاء</h1>
+                            <p data-i18n="patients-subtitle">البحث عن الصيدليات والعملاء المسجلين، إضافة عملاء جدد، ومراجعة سجلات مسحوباتهم المالية.</p>
+                        </div>
+                        <div class="unified-actions-dropdown">
+                            <button class="btn btn-primary" id="unified-action-btn">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>إجراء جديد</span>
+                                <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-right: 4px;"></i>
+                            </button>
+                            <div class="dropdown-menu" id="action-dropdown-menu" style="display: none;">
+                                <button class="dropdown-item" id="add-patient-btn">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                    <span>تسجيل عميل وإنشاء طلبية مبيعات</span>
+                                </button>
+                                <button class="dropdown-item" id="add-appointment-btn">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                    <span>إنشاء طلبية لعميل مسجل</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-actions">
+                            <div class="search-box table-search">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="patient-search-input" data-i18n-placeholder="search-patient-placeholder" placeholder="ابحث برقم الملف، الاسم، أو الهاتف...">
+                            </div>
+                            <div class="filter-group">
+                                <select id="patient-gender-filter" class="form-control select-filter">
+                                    <option value="" data-i18n="filter-all-genders">كل الجنسين</option>
+                                    <option value="male" data-i18n="gender-male">ذكر</option>
+                                    <option value="female" data-i18n="gender-female">أنثى</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="th-patient-id">رقم الملف</th>
+                                        <th data-i18n="th-patient-name">الاسم الكامل</th>
+                                        <th data-i18n="th-age">العمر</th>
+                                        <th data-i18n="th-gender">الجنس</th>
+                                        <th data-i18n="th-phone">رقم الهاتف</th>
+                                        <th data-i18n="th-last-visit">آخر زيارة</th>
+                                        <th data-i18n="th-actions">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="patients-table-tbody">
+                                    <!-- Dynamic rows from app.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. APPOINTMENTS PANEL -->
+                <section class="content-panel" id="appointments-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1 data-i18n="appointments-title-page">حجوزات وجدول المواعيد</h1>
+                            <p data-i18n="appointments-subtitle-page">تنظيم وحجز المواعيد اليومية، وتعديل حالات الحضور.</p>
+                        </div>
+                        <div class="unified-actions-dropdown">
+                            <button class="btn btn-primary" id="unified-action-btn-appt">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>إجراء جديد</span>
+                                <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-right: 4px;"></i>
+                            </button>
+                            <div class="dropdown-menu" id="action-dropdown-menu-appt" style="display: none;">
+                                <button class="dropdown-item" id="add-patient-btn-appt">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                    <span>تسجيل عميل وإنشاء طلبية مبيعات</span>
+                                </button>
+                                <button class="dropdown-item" id="add-appointment-btn-appt">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                    <span>إنشاء طلبية لعميل مسجل</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-actions">
+                            <div class="filter-group-row">
+                                <select id="appointment-doctor-filter" class="form-control select-filter">
+                                    <option value="" data-i18n="filter-all-doctors">كل الأصناف الدوائية</option>
+                                    <!-- Populated dynamically -->
+                                </select>
+                                <select id="appointment-status-filter" class="form-control select-filter">
+                                    <option value="" data-i18n="filter-all-statuses">كل الحالات</option>
+                                    <option value="pending" data-i18n="status-pending">في الانتظار</option>
+                                    <option value="confirmed" data-i18n="status-confirmed">مؤكد</option>
+                                    <option value="completed" data-i18n="status-completed">اكتمل</option>
+                                    <option value="cancelled" data-i18n="status-cancelled">ملغي</option>
+                                </select>
+                                <input type="date" id="appointment-date-filter" class="form-control date-filter">
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="th-patient">العميل / الصيدلية</th>
+                                        <th data-i18n="th-doctor">الصنف الدوائي الرئيسي</th>
+                                        <th data-i18n="th-date">التاريخ</th>
+                                        <th data-i18n="th-time">وقت التسليم</th>
+                                        <th data-i18n="th-reason">الكميات وتفاصيل الشحنة</th>
+                                        <th data-i18n="lbl-app-price">قيمة الشحنة</th>
+                                        <th data-i18n="th-status">الحالة</th>
+                                        <th data-i18n="th-actions">إجراءات</th>
+                                        <th>إجراءات سريعة</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="appointments-table-tbody">
+                                    <!-- Dynamic rows from app.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. DOCTORS PANEL -->
+                <section class="content-panel" id="doctors-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1 data-i18n="doctors-title">دليل الأدوية والمنتجات</h1>
+                            <p data-i18n="doctors-subtitle">إدارة الأصناف الدوائية، الفئات، وحالة التوفر في مخازن الشركة.</p>
+                        </div>
+                    </div>
+
+                    <!-- Doctors Cards Grid -->
+                    <div class="doctors-grid" id="doctors-grid-container">
+                        <!-- Dynamic Doctor Cards from app.js -->
+                    </div>
+                </section>
+
+                <!-- 5. BILLING & FINANCE PANEL -->
+                <section class="content-panel" id="billing-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1 data-i18n="billing-title">إصدار الفواتير والشؤون المالية</h1>
+                            <p data-i18n="billing-subtitle">إصدار فواتير الاستشارات الطبية، التحاليل والعمليات، ومتابعة المدفوعات.</p>
+                        </div>
+                        <button class="btn btn-primary" id="create-invoice-btn">
+                            <i class="fa-solid fa-file-invoice"></i>
+                            <span data-i18n="btn-create-invoice">إصدار فاتورة جديدة</span>
+                        </button>
+                    </div>
+
+                    <!-- Financial Summary Mini Grid -->
+                    <div class="stats-grid mini-grid">
+                        <div class="stat-card mini-stat">
+                            <div class="stat-icon-wrapper emerald-gradient mini-icon">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label" data-i18n="total-paid">إجمالي المحصل</span>
+                                <h4 class="stat-value" id="fin-paid-total">0 د.ل</h4>
+                            </div>
+                        </div>
+                        <div class="stat-card mini-stat">
+                            <div class="stat-icon-wrapper gold-gradient mini-icon">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label" data-i18n="total-pending">فواتير قيد الانتظار</span>
+                                <h4 class="stat-value" id="fin-pending-total">0 د.ل</h4>
+                            </div>
+                        </div>
+                        <div class="stat-card mini-stat">
+                            <div class="stat-icon-wrapper red-gradient mini-icon">
+                                <i class="fa-solid fa-ban"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label" data-i18n="total-unpaid">فواتير غير مدفوعة</span>
+                                <h4 class="stat-value" id="fin-unpaid-total">0 د.ل</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-actions">
+                            <div class="search-box table-search">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="invoice-search-input" data-i18n-placeholder="search-invoice-placeholder" placeholder="ابحث برقم الفاتورة أو اسم العميل...">
+                            </div>
+                            <div class="filter-group">
+                                <select id="invoice-status-filter" class="form-control select-filter">
+                                    <option value="" data-i18n="filter-all-payments">كل الحالات المالية</option>
+                                    <option value="paid" data-i18n="invoice-status-paid">مدفوعة</option>
+                                    <option value="pending" data-i18n="invoice-status-pending">قيد الانتظار</option>
+                                    <option value="unpaid" data-i18n="invoice-status-unpaid">غير مدفوعة</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="th-invoice-id">رقم الفاتورة</th>
+                                        <th data-i18n="th-patient">العميل / الصيدلية</th>
+                                        <th data-i18n="th-date">التاريخ</th>
+                                        <th data-i18n="th-total">المبلغ الإجمالي</th>
+                                        <th data-i18n="th-payment-method">طريقة الدفع</th>
+                                        <th data-i18n="th-payment-status">الحالة</th>
+                                        <th data-i18n="th-actions">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoices-table-tbody">
+                                    <!-- Dynamic rows from app.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. INVENTORY & REPORTS PANEL -->
+                <section class="content-panel" id="inventory-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1 data-i18n="inventory-title">الجرد والتقارير المالية للشركة</h1>
+                            <p data-i18n="inventory-subtitle">متابعة الأداء المالي وجرد مبيعات الأصناف وحسابات الصيدليات والذمم المستحقة.</p>
+                        </div>
+                    </div>
+
+                    <div class="inventory-controls card" style="margin-bottom: 20px;">
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: end;">
+                            <div class="form-group">
+                                <label>نوع التقرير والجرد</label>
+                                <select id="inventory-period-type" class="form-control">
+                                    <option value="monthly">جرد شهري</option>
+                                    <option value="yearly">جرد سنوي</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="inventory-month-group">
+                                <label>الشهر</label>
+                                <select id="inventory-month" class="form-control">
+                                    <option value="01">يناير</option>
+                                    <option value="02">فبراير</option>
+                                    <option value="03">مارس</option>
+                                    <option value="04">أبريل</option>
+                                    <option value="05">مايو</option>
+                                    <option value="06">يونيو</option>
+                                    <option value="07">يوليو</option>
+                                    <option value="08">أغسطس</option>
+                                    <option value="09">سبتمبر</option>
+                                    <option value="10">أكتوبر</option>
+                                    <option value="11">نوفمبر</option>
+                                    <option value="12">ديسمبر</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>السنة</label>
+                                <select id="inventory-year" class="form-control">
+                                    <option value="2026">2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2025">2025</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="display: flex; gap: 8px;">
+                                <button type="button" class="btn btn-primary" id="btn-run-inventory" style="flex: 2;">
+                                    <i class="fa-solid fa-calculator"></i> تشغيل الجرد
+                                </button>
+                                <button type="button" class="btn btn-outline" id="btn-print-inventory" style="flex: 1;">
+                                    <i class="fa-solid fa-print"></i> طباعة
+                                </button>
+                            </div>
+                    </div>
+                    <div class="stats-grid" id="inventory-summary-cards" style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+                        <div class="stat-card mini-stat">
+                            <div class="stat-icon-wrapper green-gradient mini-icon">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label">نقدي (Cash)</span>
+                                <h4 class="stat-value" id="inv-total-cash">0 د.ل</h4>
+                            </div>
+                        </div>
+                        <div class="stat-card mini-stat">
+                            <div class="stat-icon-wrapper blue-gradient mini-icon">
+                                <i class="fa-solid fa-credit-card"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label">بطاقة مصرفية (Card)</span>
+                                <h4 class="stat-value" id="inv-total-card">0 د.ل</h4>
+                            </div>
+                        </div>
+                        <div class="stat-card mini-stat">
+                            <div class="stat-icon-wrapper gold-gradient mini-icon">
+                                <i class="fa-solid fa-money-bill-transfer"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label">تحويل مصرفي (Transfer)</span>
+                                <h4 class="stat-value" id="inv-total-transfer">0 د.ل</h4>
+                            </div>
+                        </div>
+                        <div class="stat-card mini-stat">
+                            <div class="stat-icon-wrapper red-gradient mini-icon">
+                                <i class="fa-solid fa-money-check-dollar"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label">صك سياحي (Check)</span>
+                                <h4 class="stat-value" id="inv-total-check">0 د.ل</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="medical-tabs card">
+                        <div class="tab-headers">
+                            <button class="tab-header-btn active" data-tab="tab-inv-doctors">
+                                <i class="fa-solid fa-pills"></i> جرد مبيعات الأصناف
+                            </button>
+                            <button class="tab-header-btn" data-tab="tab-inv-patients">
+                                <i class="fa-solid fa-store"></i> جرد مسحوبات الصيدليات
+                            </button>
+                            <button class="tab-header-btn" data-tab="tab-inv-debts">
+                                <i class="fa-solid fa-hand-holding-dollar"></i> الذمم الائتمانية والديون المعلقة
+                            </button>
+                        </div>
+
+                        <div class="tab-contents">
+                            <!-- Tab 1: Doctors Report -->
+                            <div class="tab-pane active" id="tab-inv-doctors">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>الصنف الدوائي</th>
+                                                <th>التصنيف / الفئة</th>
+                                                <th>إجمالي الكميات المباعة</th>
+                                                <th>إجمالي المبيعات</th>
+                                                <th>المحصل الفعلي</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="inv-doctors-tbody">
+                                            <!-- populated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Tab 2: Patients Report -->
+                            <div class="tab-pane" id="tab-inv-patients">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>رقم الحساب</th>
+                                                <th>العميل / الصيدلية</th>
+                                                <th>عدد الطلبيات المكتملة</th>
+                                                <th>إجمالي المشتريات</th>
+                                                <th>المدفوع الفعلي</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="inv-patients-tbody">
+                                            <!-- populated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Tab 3: Custody & Debts -->
+                            <div class="tab-pane" id="tab-inv-debts">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>اسم العميل / الصيدلية</th>
+                                                <th>رقم الهاتف</th>
+                                                <th>عنوان التسليم</th>
+                                                <th>فواتير ذمم معلقة</th>
+                                                <th>إجمالي الديون الائتمانية</th>
+                                                <th>تفاصيل الفاتورة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="inv-debts-tbody">
+                                            <!-- populated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. SETTINGS PANEL -->
+                <section class="content-panel" id="settings-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1 data-i18n="settings-title">إعدادات المنظومة</h1>
+                            <p data-i18n="settings-subtitle">تعديل بيانات الشركة العامة، إدارة قاعدة البيانات، ودليل الأدوية والمنتجات.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid-layout">
+                        <!-- Card 1: General Settings -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 data-i18n="settings-general-header">إعدادات الشركة العامة</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="settings-general-form">
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label class="required" data-i18n="lbl-clinic-name-ar">اسم الشركة (عربي)</label>
+                                            <input type="text" id="set-clinic-name-ar" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="required" data-i18n="lbl-clinic-name-en">اسم الشركة (إنجليزي)</label>
+                                            <input type="text" id="set-clinic-name-en" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="required" data-i18n="lbl-clinic-subtitle-ar">الوصف / الشعار (عربي)</label>
+                                            <input type="text" id="set-clinic-subtitle-ar" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="required" data-i18n="lbl-clinic-subtitle-en">الوصف / الشعار (إنجليزي)</label>
+                                            <input type="text" id="set-clinic-subtitle-en" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="required" data-i18n="lbl-manager-name-ar">اسم المدير المسؤول (عربي)</label>
+                                            <input type="text" id="set-manager-name-ar" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="required" data-i18n="lbl-manager-name-en">اسم المدير المسؤول (إنجليزي)</label>
+                                            <input type="text" id="set-manager-name-en" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="required" data-i18n="lbl-currency-ar">العملة (عربي)</label>
+                                            <input type="text" id="set-currency-ar" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="required" data-i18n="lbl-currency-en">العملة (إنجليزي)</label>
+                                            <input type="text" id="set-currency-en" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group-row justify-end mt-2">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="btn-save-settings">حفظ التغييرات</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+
+                        <!-- Card 2: Database Operations -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 data-i18n="settings-db-header">إدارة قاعدة البيانات والنسخ الاحتياطي</h3>
+                            </div>
+                            <div class="card-body">
+                                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 13px;" data-i18n="settings-db-help">
+                                    يمكنك تصدير نسخة احتياطية من جميع بيانات المنظومة (العملاء، المبيعات، الفواتير) لاستعادتها لاحقاً أو إعادة ضبط المنظومة للقيم الافتراضية.
+                                </p>
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-success" id="btn-export-db">
+                                        <i class="fa-solid fa-download"></i> <span data-i18n="btn-export-db">تصدير قاعدة البيانات</span>
+                                    </button>
+                                    <button type="button" class="btn btn-outline" id="btn-import-db-trigger">
+                                        <i class="fa-solid fa-upload"></i> <span data-i18n="btn-import-db">استيراد قاعدة البيانات</span>
+                                    </button>
+                                    <input type="file" id="db-import-file-input" style="display: none;" accept=".json">
+                                    <button type="button" class="btn btn-danger" id="btn-reset-db">
+                                        <i class="fa-solid fa-trash-can"></i> <span data-i18n="btn-reset-db">تصفير المنظومة بالكامل</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Doctor Staff Management -->
+                        <div class="card">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3 data-i18n="settings-doctors-header">إدارة دليل الأدوية والمنتجات</h3>
+                                <button type="button" class="btn btn-primary btn-sm" id="btn-add-doctor-modal-trigger">
+                                    <i class="fa-solid fa-plus"></i> <span data-i18n="btn-add-doctor">إضافة دواء/منتج جديد</span>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="th-doctor">الصنف الدوائي</th>
+                                                <th data-i18n="th-specialty">التصنيف</th>
+                                                <th data-i18n="th-phone">رمز الصنف</th>
+                                                <th data-i18n="th-status">الحالة</th>
+                                                <th data-i18n="th-actions">إجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="settings-doctors-tbody">
+                                            <!-- Dynamic rows from app.js -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                        <!-- Card 4: User & Password Management (Admin only) -->
+                        <div class="card" id="user-management-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-users-gear"></i> إدارة حسابات المستخدمين والصلحيات</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive" style="margin-bottom: 20px; max-height: 250px;">
+                                    <table class="table min-table">
+                                        <thead>
+                                            <tr>
+                                                <th>اسم المستخدم</th>
+                                                <th>الصلاحية</th>
+                                                <th>إجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="settings-users-tbody">
+                                            <!-- Filled dynamically by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="login-divider"></div>
+                                <h4 style="font-size: 14px; margin-bottom: 12px; font-weight: 700; color: var(--text-primary);">إضافة حساب مستخدم جديد</h4>
+                                <form id="settings-new-user-form">
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label class="required">اسم المستخدم (بالأحرف الإنجليزية)</label>
+                                            <input type="text" id="new-user-username" class="form-control" placeholder="مثال: dr_salem" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="required">كلمة المرور</label>
+                                            <input type="password" id="new-user-password" class="form-control" placeholder="أدخل كلمة مرور قوية" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="required">نوع الحساب (الصلاحية)</label>
+                                            <select id="new-user-role" class="form-control" required>
+                                                <option value="employee">موظف (Staff)</option>
+                                                <option value="supervisor">مشرف (Supervisor)</option>
+                                                <option value="admin">مدير (Admin)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group-row justify-end mt-2">
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <i class="fa-solid fa-user-plus"></i> إضافة مستخدم جديد
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Card 5: System Activity Audit Log (Admin only) -->
+                        <div class="card" id="audit-logs-card" style="grid-column: 1 / -1; display: none;">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3><i class="fa-solid fa-clipboard-list"></i> سجل نشاطات النظام والأحداث</h3>
+                                <button type="button" class="btn btn-danger btn-sm" id="btn-clear-logs">
+                                    <i class="fa-solid fa-trash-can"></i> مسح السجل بالكامل
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-actions" style="margin-bottom: 12px; padding: 0 0 12px 0;">
+                                    <div class="search-box table-search" style="max-width: 100%; width: 100%; margin: 0;">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                        <input type="text" id="audit-logs-search" placeholder="بحث في السجلات بالعملية، الحساب، أو التفاصيل...">
+                                    </div>
+                                </div>
+                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table min-table">
+                                        <thead>
+                                            <tr>
+                                                <th>المستخدم</th>
+                                                <th>العملية</th>
+                                                <th>التفاصيل والهدف</th>
+                                                <th>التاريخ والوقت</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="settings-audit-logs-tbody">
+                                            <!-- Dynamic rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                        <!-- Card 6: Keyboard Shortcuts Help -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-keyboard"></i> اختصارات لوحة المفاتيح السريعة (Keyboard Shortcuts)</h3>
+                            </div>
+                            <div class="card-body">
+                                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">
+                                    يمكنك استخدام الاختصارات التالية للتنقل السريع بين لوحات المنظومة بنقرة زر واحدة (باستخدام زر <strong>Alt</strong>):
+                                </p>
+                                <div class="table-responsive">
+                                    <table class="table min-table" style="font-size: 12px;">
+                                        <thead>
+                                            <tr>
+                                                <th>الاختصار</th>
+                                                <th>اللوحة / الإجراء</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><code>Alt + H</code></td>
+                                                <td>الرئيسية (لوحة التحكم)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>Alt + P</code></td>
+                                                <td>إدارة المرضى</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>Alt + A</code></td>
+                                                <td>جدول المواعيد</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>Alt + D</code></td>
+                                                <td>إدارة الأطباء</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>Alt + B</code></td>
+                                                <td>الفواتير والمالية</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>Alt + I</code></td>
+                                                <td>الجرد والتقارير</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>Alt + S</code></td>
+                                                <td>إعدادات المنظومة</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>Alt + L</code></td>
+                                                <td>تسجيل الخروج</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+
+            </div>
+        </main>
+    </div>
+
+    <!-- UNIFIED MODAL: ADD PATIENT & BOOK APPOINTMENT -->
+    <div class="modal-backdrop" id="add-patient-appt-modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3>تسجيل مريض جديد وحجز موعد</h3>
+                <button class="modal-close" data-close-modal="add-patient-appt-modal">&times;</button>
+            </div>
+            <form id="add-patient-appt-form">
+                <div class="modal-body">
+                    <div class="modal-section-title">
+                        <i class="fa-solid fa-user-injured"></i> <span>بيانات المريض الجديد / New Patient Details</span>
+                    </div>
+                    <div class="form-grid" style="margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label class="required">الاسم الكامل للمريض</label>
+                            <input type="text" id="p-appt-name" class="form-control" required placeholder="مثال: محمد علي العبيدي">
+                        </div>
+                        <div class="form-group">
+                            <label class="required">رقم الهاتف</label>
+                            <input type="tel" id="p-appt-phone" class="form-control" required placeholder="مثال: 091-XXXXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label class="required">العمر</label>
+                            <input type="number" id="p-appt-age" class="form-control" required min="0" max="150" placeholder="مثال: 32">
+                        </div>
+                        <div class="form-group">
+                            <label class="required">الجنس</label>
+                            <select id="p-appt-gender" class="form-control" required>
+                                <option value="male">ذكر</option>
+                                <option value="female">أنثى</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>العنوان السكني</label>
+                            <input type="text" id="p-appt-address" class="form-control" placeholder="المدينة، الشارع أو المنطقة">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>التاريخ المرضي المبدئي / ملاحظات</label>
+                            <textarea id="p-appt-history" class="form-control" rows="2" placeholder="أمراض مزمنة، حساسية، أو ملاحظات هامة..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-section-title">
+                        <i class="fa-solid fa-calendar-check"></i> <span>تفاصيل حجز الموعد / Appointment Details</span>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="required">الطبيب المختص</label>
+                            <select id="app-appt-doctor-id" class="form-control" required>
+                                <option value="">اختر الطبيب المعالج...</option>
+                                <!-- Filled dynamically by JS -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">التاريخ</label>
+                            <input type="date" id="app-appt-date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">التوقيت</label>
+                            <input type="time" id="app-appt-time" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">سعر الكشفية / الحجز</label>
+                            <input type="number" id="app-appt-price" class="form-control" min="0" step="any" placeholder="مثال: 50" required value="50">
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="required">سبب الزيارة أو العيادة</label>
+                            <input type="text" id="app-appt-reason" class="form-control" placeholder="كشف روتيني، مراجعة دورية، ألم بالأسنان..." required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close-modal="add-patient-appt-modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">تسجيل المريض وحجز الموعد</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 1: ADD PATIENT -->
+    <div class="modal-backdrop" id="add-patient-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="modal-add-patient-title">تسجيل مريض جديد</h3>
+                <button class="modal-close" data-close-modal="add-patient-modal">&times;</button>
+            </div>
+            <form id="add-patient-form">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-patient-name">الاسم الكامل للمريض</label>
+                            <input type="text" id="p-name" class="form-control" required placeholder="مثال: محمد علي العبيدي">
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-patient-phone">رقم الهاتف</label>
+                            <input type="tel" id="p-phone" class="form-control" required placeholder="مثال: 091-XXXXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-patient-age">العمر</label>
+                            <input type="number" id="p-age" class="form-control" required min="0" max="150" placeholder="مثال: 32">
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-patient-gender">الجنس</label>
+                            <select id="p-gender" class="form-control" required>
+                                <option value="male" data-i18n="gender-male">ذكر</option>
+                                <option value="female" data-i18n="gender-female">أنثى</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label data-i18n="lbl-patient-address">العنوان السكني</label>
+                            <input type="text" id="p-address" class="form-control" placeholder="المدينة، الشارع أو المنطقة">
+                        </div>
+                        <div class="form-group full-width">
+                            <label data-i18n="lbl-payment-status">حالة الدفع</label>
+                            <select id="p-payment-status" class="form-control">
+                                <option value="unpaid" data-i18n="payment-unpaid">غير مدفوع</option>
+                                <option value="partial" data-i18n="payment-partial">مدفوع جزئياً</option>
+                                <option value="paid" data-i18n="payment-paid">مدفوع بالكامل</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label data-i18n="lbl-medical-history">التاريخ المرضي المبدئي / ملاحظات</label>
+                            <textarea id="p-history" class="form-control" rows="3" placeholder="أمراض مزمنة، حساسية، أو ملاحظات هامة..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close-modal="add-patient-modal" data-i18n="btn-cancel">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="btn-save">حفظ المريض</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: BOOK APPOINTMENT -->
+    <div class="modal-backdrop" id="add-appointment-modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="modal-book-app-title">حجز موعد طبي جديد</h3>
+                <button class="modal-close" data-close-modal="add-appointment-modal-dialog">&times;</button>
+            </div>
+            <form id="add-appointment-form">
+                <input type="hidden" id="app-edit-id" value="">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-app-patient">اختيار المريض</label>
+                            <select id="app-patient-id" class="form-control" required>
+                                <option value="" data-i18n="lbl-select-patient">اختر المريض...</option>
+                                <!-- Filled by JS -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-app-doctor">الطبيب المختص</label>
+                            <select id="app-doctor-id" class="form-control" required>
+                                <option value="" data-i18n="lbl-select-doctor">اختر الطبيب المعالج...</option>
+                                <!-- Filled by JS -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-app-date">التاريخ</label>
+                            <input type="date" id="app-date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-app-time">التوقيت</label>
+                            <input type="time" id="app-time" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-app-price">سعر الكشفية / الحجز</label>
+                            <input type="number" id="app-price" class="form-control" min="0" step="any" placeholder="مثال: 50" required value="50">
+                        </div>
+                        <div class="form-group full-width">
+                            <label data-i18n="lbl-app-reason">سبب الزيارة أو العيادة</label>
+                            <input type="text" id="app-reason" class="form-control" placeholder="كشف روتيني، مراجعة دورية، ألم بالأسنان..." required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close-modal="add-appointment-modal-dialog" data-i18n="btn-cancel">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="btn-save-booking">حجز الموعد</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: CREATE INVOICE -->
+    <div class="modal-backdrop" id="create-invoice-modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 data-i18n="modal-create-invoice-title">إصدار فاتورة جديدة</h3>
+                <button class="modal-close" data-close-modal="create-invoice-modal">&times;</button>
+            </div>
+            <form id="create-invoice-form">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-invoice-patient">اختيار المريض</label>
+                            <select id="inv-patient-id" class="form-control" required>
+                                <option value="" data-i18n="lbl-select-patient">اختر المريض...</option>
+                                <!-- Filled by JS -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-invoice-status">حالة الفاتورة المالية</label>
+                            <select id="inv-status" class="form-control" required>
+                                <option value="paid" data-i18n="invoice-status-paid">مدفوعة بالكامل</option>
+                                <option value="pending" data-i18n="invoice-status-pending">قيد الانتظار / دفع جزئي</option>
+                                <option value="unpaid" data-i18n="invoice-status-unpaid">غير مدفوعة</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-invoice-payment-method">طريقة الدفع</label>
+                            <select id="inv-payment-method" class="form-control" required>
+                                <option value="cash" data-i18n="payment-method-cash">نقدي (Cash)</option>
+                                <option value="card" data-i18n="payment-method-card">بطاقة مصرفية (Card)</option>
+                                <option value="transfer" data-i18n="payment-method-transfer">تحويل مصرفي (Transfer)</option>
+                                <option value="check" data-i18n="payment-method-check">صك سياحي (Check)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic invoice items -->
+                    <div class="invoice-items-section">
+                        <h4 data-i18n="invoice-items-title" class="section-title">بنود الفاتورة والخدمات المقدمة</h4>
+                        
+                        <div class="invoice-items-container" id="invoice-items-list">
+                            <!-- Rows will be added here -->
+                            <div class="invoice-item-row">
+                                <input type="text" class="form-control item-desc" required data-i18n-placeholder="placeholder-service" placeholder="كشف طبي / استشارة...">
+                                <input type="number" class="form-control item-price" required min="0" data-i18n-placeholder="placeholder-price" placeholder="السعر" value="50">
+                                <button type="button" class="btn btn-icon btn-danger remove-item-row" disabled><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-outline btn-sm add-item-row-btn" id="add-item-row-btn">
+                            <i class="fa-solid fa-plus"></i> <span data-i18n="btn-add-service">إضافة خدمة أخرى</span>
+                        </button>
+                    </div>
+
+                    <!-- Total display -->
+                    <div class="invoice-total-summary">
+                        <span data-i18n="lbl-total-amount">المجموع الإجمالي:</span>
+                        <span class="total-amount-val" id="invoice-total-amount-display">50 د.ل</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close-modal="create-invoice-modal" data-i18n="btn-cancel">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="btn-issue-invoice">إصدار الفاتورة وحفظها</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: INVOICE PRINT VIEW -->
+    <div class="modal-backdrop" id="view-invoice-modal">
+        <div class="modal-content modal-invoice-print">
+            <div class="modal-header no-print">
+                <h3 data-i18n="invoice-details-title">تفاصيل الفاتورة الرسمية</h3>
+                <div class="modal-header-actions">
+                    <button class="btn btn-outline btn-sm" id="print-invoice-btn">
+                        <i class="fa-solid fa-print"></i> <span data-i18n="btn-print">طباعة الفاتورة</span>
+                    </button>
+                    <button class="modal-close" data-close-modal="view-invoice-modal">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body printable-invoice-area" id="printable-invoice-content">
+                <!-- Filled dynamically by app.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: COMMERCIAL FILE DETAILS -->
+    <div class="modal-backdrop" id="patient-file-modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="med-file-title">سجل التعاملات التجارية والطلبيات للعميل</h3>
+                <button class="modal-close" data-close-modal="patient-file-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="patient-profile-card">
+                    <div class="patient-profile-main">
+                        <div class="patient-avatar-box">
+                            <i class="fa-solid fa-store"></i>
+                        </div>
+                        <div class="patient-meta-details">
+                            <h4 id="med-patient-name">صيدلية السلام</h4>
+                            <p><span data-i18n="th-patient-id">رقم الحساب:</span> <strong id="med-patient-id">#102</strong></p>
+                            <p><span data-i18n="th-phone">رقم الهاتف:</span> <strong id="med-patient-phone">0912345678</strong></p>
+                        </div>
+                    </div>
+                    <div class="patient-profile-stats">
+                        <div class="p-stat">
+                            <span data-i18n="th-age">الحد الائتماني (أيام)</span>
+                            <strong id="med-patient-age">30 يوم</strong>
+                        </div>
+                        <div class="p-stat">
+                            <span data-i18n="th-gender">التصنيف</span>
+                            <strong id="med-patient-gender">خاص / صيدلية</strong>
+                        </div>
+                        <div class="p-stat">
+                            <span data-i18n="lbl-patient-address">عنوان التسليم</span>
+                            <strong id="med-patient-address">طرابلس</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="medical-tabs">
+                    <div class="tab-headers">
+                        <button class="tab-header-btn active" data-tab="tab-history" data-i18n="tab-history">سجل المبيعات والطلبات السابقة</button>
+                        <button class="tab-header-btn" data-tab="tab-appointments" data-i18n="nav-appointments">طلبات المبيعات</button>
+                        <button class="tab-header-btn" data-tab="tab-invoices" data-i18n="nav-billing">الفواتير والمالية</button>
+                    </div>
+
+                    <div class="tab-contents">
+                        <!-- Tab 1: History -->
+                        <div class="tab-pane active" id="tab-history">
+                            <div class="history-card">
+                                <h5 data-i18n="medical-records">ملاحظات التعامل والتحصيل العام للعميل:</h5>
+                                <p id="med-general-history">لا توجد سجلات سابقة للعميل.</p>
+                            </div>
+                            <div class="clinical-records-section">
+                                <h5 data-i18n="new-prescription-title">إضافة قيد أو ملاحظة تجارية جديدة للعميل:</h5>
+                                <form id="add-prescription-form">
+                                    <input type="hidden" id="med-form-patient-id">
+                                    <div class="prescription-input-layout" style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 12px;">
+                                        <div class="form-group" style="flex: 2; width: 100%; margin-bottom: 0;">
+                                            <textarea id="med-prescription-text" class="form-control" rows="5" required data-i18n-placeholder="placeholder-prescription" placeholder="اكتب ملاحظات الشحن، التوصيل، الديون المعلقة أو الملاحظات الائتمانية..." style="resize: vertical;"></textarea>
+                                        </div>
+                                        <div class="prescription-templates-panel" style="flex: 1; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 12px; background-color: var(--bg-tertiary); max-width: 300px; width: 100%;">
+                                            <h6 style="margin-top: 0; margin-bottom: 8px; font-weight:700; font-size:12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-secondary);"></i> قوالب طلبيات جاهزة</h6>
+                                            <div class="templates-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto;">
+                                                <button type="button" class="btn btn-outline template-btn" data-text-ar="طلب توريد روتيني: شحنة الأدوية الشهرية المعتادة للصيدلية." data-text-en="Routine supply order: The pharmacy's regular monthly medicine shipment." style="font-size: 10px; padding: 6px 8px; text-align: inherit; justify-content: flex-start; width: 100%; white-space: normal; line-height: 1.3;">طلب توريد روتيني</button>
+                                                <button type="button" class="btn btn-outline template-btn" data-text-ar="طلبية مضاد حيوي: كميات مختلفة من أموكسيسيلين وأوجمنتين." data-text-en="Antibiotics order: Quantities of Amoxicillin and Augmentin." style="font-size: 10px; padding: 6px 8px; text-align: inherit; justify-content: flex-start; width: 100%; white-space: normal; line-height: 1.3;">طلبية مضاد حيوي</button>
+                                                <button type="button" class="btn btn-outline template-btn" data-text-ar="طلبية مسكنات وخافض حرارة: 200 علبة من البانادول ومسكنات أخرى." data-text-en="Routine pain relief: Panadol 500mg (as needed)." style="font-size: 10px; padding: 6px 8px; text-align: inherit; justify-content: flex-start; width: 100%; white-space: normal; line-height: 1.3;">مسكنات وخافض حرارة</button>
+                                                <button type="button" class="btn btn-outline template-btn" data-text-ar="شحنة أدوية مبردة: أنسولين وهرمونات تتطلب درجة حرارة منخفضة." data-text-en="Refrigerated shipment: Insulin and biological treatments requiring cold chain delivery." style="font-size: 10px; padding: 6px 8px; text-align: inherit; justify-content: flex-start; width: 100%; white-space: normal; line-height: 1.3;">أدوية مبردة</button>
+                                                <button type="button" class="btn btn-outline template-btn" data-text-ar="شحنة مستلزمات طبية: قفازات، خيوط جراحية، ومطهرات." data-text-en="Medical supplies shipment: Gloves, surgical sutures, and disinfectants." style="font-size: 10px; padding: 6px 8px; text-align: inherit; justify-content: flex-start; width: 100%; white-space: normal; line-height: 1.3;">مستلزمات طبية</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group-row justify-end mt-1">
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <i class="fa-solid fa-notes-medical"></i> <span data-i18n="btn-save-record">حفظ القيد التجاري</span>
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <h5 data-i18n="clinical-timeline" class="mt-2">السجل التاريخي للطلبيات والمسحوبات للعميل:</h5>
+                                <div class="timeline" id="medical-timeline-container">
+                                    <!-- Filled dynamically by JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Appointments -->
+                        <div class="tab-pane" id="tab-appointments">
+                            <div class="table-responsive">
+                                <table class="table min-table">
+                                    <thead>
+                                        <tr>
+                                            <th data-i18n="th-doctor">الصنف الدوائي</th>
+                                            <th data-i18n="th-date">التاريخ والوقت</th>
+                                            <th data-i18n="th-reason">الكميات وتفاصيل الشحنة</th>
+                                            <th data-i18n="lbl-app-price">قيمة الشحنة</th>
+                                            <th data-i18n="th-status">الحالة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="med-appointments-tbody">
+                                        <!-- Dynamic JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tab 3: Invoices -->
+                        <div class="tab-pane" id="tab-invoices">
+                            <div class="table-responsive">
+                                <table class="table min-table">
+                                    <thead>
+                                        <tr>
+                                            <th data-i18n="th-invoice-id">رقم الفاتورة</th>
+                                            <th data-i18n="th-date">التاريخ</th>
+                                            <th data-i18n="th-total">الإجمالي</th>
+                                            <th data-i18n="th-payment-method">طريقة الدفع</th>
+                                            <th data-i18n="th-payment-status">الحالة</th>
+                                            <th data-i18n="th-actions">إجراء</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="med-invoices-tbody">
+                                        <!-- Dynamic JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: ADD/EDIT MEDICINE/PRODUCT -->
+    <div class="modal-backdrop" id="add-doctor-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="doctor-modal-title" data-i18n="modal-add-doctor-title">إضافة دواء / صنف جديد</h3>
+                <button class="modal-close" data-close-modal="add-doctor-modal">&times;</button>
+            </div>
+            <form id="add-doctor-form">
+                <input type="hidden" id="doc-id">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-doctor-name-ar">اسم المنتج/الدواء (عربي)</label>
+                            <input type="text" id="doc-name-ar" class="form-control" required placeholder="مثال: بانادول إكسترا 500 ملغ">
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-doctor-name-en">اسم المنتج/الدواء (إنجليزي)</label>
+                            <input type="text" id="doc-name-en" class="form-control" required placeholder="Example: Panadol Extra 500mg">
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-doctor-spec-ar">الفئة / التصنيف (عربي)</label>
+                            <input type="text" id="doc-spec-ar" class="form-control" required placeholder="مثال: مسكنات وخافض حرارة">
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-doctor-spec-en">الفئة / التصنيف (إنجليزي)</label>
+                            <input type="text" id="doc-spec-en" class="form-control" required placeholder="Example: Analgesics & Antipyretics">
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-doctor-phone">الرمز التجاري / الباركود</label>
+                            <input type="text" id="doc-phone" class="form-control" required placeholder="مثال: P-EX">
+                        </div>
+                        <div class="form-group">
+                            <label class="required" data-i18n="lbl-doctor-status">حالة المخزون والتوفر</label>
+                            <select id="doc-status" class="form-control" required>
+                                <option value="available" data-i18n="status-dot-available">متوفر بالمستودع</option>
+                                <option value="busy" data-i18n="status-dot-busy">كمية محدودة</option>
+                                <option value="off" data-i18n="status-dot-off">غير متوفر حالياً</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label data-i18n="lbl-doctor-image">رابط صورة المنتج (اختياري)</label>
+                            <input type="url" id="doc-image" class="form-control" placeholder="https://images.unsplash.com/...">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close-modal="add-doctor-modal" data-i18n="btn-cancel">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" id="doc-submit-btn" data-i18n="btn-save">حفظ البيانات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- MODAL 7: CHANGE USER PASSWORD -->
+    <div class="modal-backdrop" id="change-user-password-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تغيير كلمة مرور المستخدم</h3>
+                <button class="modal-close" data-close-modal="change-user-password-modal">&times;</button>
+            </div>
+            <form id="change-user-password-form">
+                <input type="hidden" id="change-user-pwd-username">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="required">كلمة المرور الجديدة للحساب: <span id="change-user-pwd-display" style="font-weight:700;"></span></label>
+                        <input type="password" id="change-user-pwd-new-val" class="form-control" placeholder="أدخل كلمة المرور الجديدة..." required minlength="4">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close-modal="change-user-password-modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">تحديث كلمة المرور</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 8: PRESCRIPTION & MEDICAL REPORT PRINT VIEW -->
+    <div class="modal-backdrop" id="view-prescription-modal">
+        <div class="modal-content modal-invoice-print">
+            <div class="modal-header no-print">
+                <h3>معاينة تفاصيل شحنة المبيعات</h3>
+                <div class="modal-header-actions">
+                    <button class="btn btn-outline btn-sm" id="print-prescription-btn">
+                        <i class="fa-solid fa-print"></i> طباعة سند التسليم
+                    </button>
+                    <button class="modal-close" data-close-modal="view-prescription-modal">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body printable-invoice-area" id="printable-prescription-content">
+                <!-- Filled dynamically by app.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 9: INVENTORY REPORT PRINT VIEW -->
+    <div class="modal-backdrop" id="view-inventory-print-modal">
+        <div class="modal-content modal-invoice-print" style="max-width: 950px; width: 95%;">
+            <div class="modal-header no-print">
+                <h3>معاينة تقرير الجرد المالي الرسمية</h3>
+                <div class="modal-header-actions">
+                    <button class="btn btn-outline btn-sm" id="print-inventory-btn">
+                        <i class="fa-solid fa-print"></i> طباعة التقرير
+                    </button>
+                    <button class="modal-close" data-close-modal="view-inventory-print-modal">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body printable-invoice-area" id="printable-inventory-content" style="padding: 20px; font-family: 'Cairo', sans-serif;">
+                <!-- Filled dynamically by app.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom App Script -->
+    <script src="app.js?v=2"></script>
+</body>
+</html>

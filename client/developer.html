@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الخير للأدوية | لوحة صيانة وتطوير المنظومة</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="style.css?v=3">
+    <style>
+        /* Developer Layout Overrides for Mobile and Compositing */
+        body::before, body::after {
+            display: none !important; /* Turn off GPU-heavy blurs */
+        }
+        .sidebar, .main-content {
+            transition: none !important;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 270px !important;
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                right: 0;
+                transform: translateX(100%);
+                z-index: 2000;
+            }
+            html[dir="ltr"] .sidebar {
+                left: 0;
+                right: auto;
+                transform: translateX(-100%) !important;
+            }
+            .sidebar.open {
+                transform: translateX(0) !important;
+            }
+            .main-content {
+                width: 100vw !important;
+            }
+            .navbar, .modal-backdrop, .login-card, .toast, .card, .stat-card, .noti-panel {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+            }
+            .navbar, .card, .stat-card, .noti-panel, .login-card {
+                background-color: var(--bg-secondary) !important;
+            }
+            .modal-backdrop {
+                background-color: rgba(9, 13, 22, 0.9) !important;
+            }
+        }
+        .sql-textarea {
+            width: 100%;
+            height: 120px;
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            padding: 12px;
+            color: #10b981;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            outline: none;
+            resize: vertical;
+        }
+        .db-table-badge {
+            display: inline-block;
+            background: var(--info-bg);
+            color: var(--accent-primary);
+            padding: 6px 12px;
+            border-radius: var(--border-radius-sm);
+            margin: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            transition: var(--transition-smooth);
+        }
+        .db-table-badge:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+        .table-meta-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .table-meta-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            padding: 14px;
+        }
+        .table-meta-card h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .table-meta-card ul {
+            list-style: none;
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: grid;
+            gap: 4px;
+        }
+        .sql-error-msg {
+            color: var(--color-rose);
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            padding: 12px 16px;
+            border-radius: var(--border-radius-md);
+            font-size: 13px;
+            font-family: monospace;
+            margin-top: 12px;
+        }
+        .sql-success-msg {
+            color: var(--color-emerald);
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 12px 16px;
+            border-radius: var(--border-radius-md);
+            font-size: 13px;
+            margin-top: 12px;
+        }
+        .quick-sql-btn {
+            padding: 4px 10px;
+            font-size: 11px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .diagnostics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .diagnostic-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: var(--border-radius-md);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .diagnostic-card span {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .diagnostic-card h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ====== DEVELOPER LOGIN ====== -->
+    <div class="dev-login-container" id="dev-login-screen">
+        <div class="login-backdrop-glow"></div>
+        <div class="login-card">
+            <div class="login-logo" id="dev-login-logo-container">
+                <i class="fa-solid fa-code" style="font-size: 32px; color: var(--accent-primary);"></i>
+            </div>
+            <div class="login-brand">
+                <h1 class="decorated-brand">الخير للأدوية Dev</h1>
+                <p>لوحة التحكم البرمجية وتكامل الصيانة</p>
+            </div>
+            <div class="login-divider"></div>
+            <h3 class="login-title">تسجيل دخول المطور</h3>
+            <p class="login-subtitle">الرجاء إدخال رمز المطور (Developer Key) للمتابعة</p>
+
+            <form id="dev-login-form" onsubmit="handleDevLogin(event)">
+                <div class="login-input-group">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="dev-key-input" class="login-input" placeholder="أدخل رمز المطور..." required>
+                </div>
+                <div class="login-error" id="dev-login-error">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>رمز المطور غير صحيح!</span>
+                </div>
+                <button type="submit" class="btn btn-primary login-btn">
+                    <i class="fa-solid fa-unlock-keyhole"></i>
+                    دخول إلى لوحة التحكم الكاملة
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== DEVELOPER APPLAYOUT ====== -->
+    <div class="app-layout" id="dev-app-layout" style="display: none;">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="dev-sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo" id="dev-sidebar-logo-container">
+                    <i class="fa-solid fa-screwdriver-wrench" style="color: var(--accent-primary);"></i>
+                </div>
+                <div class="brand-name">
+                    <h2 class="decorated-brand">الخير للأدوية Dev</h2>
+                    <span>التحكم الشامل بالمنظومة</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <ul>
+                    <li class="active" data-panel="sql-console">
+                        <a href="#sql-console">
+                            <i class="fa-solid fa-terminal"></i>
+                            <span>منفذ SQL المباشر</span>
+                        </a>
+                    </li>
+                    <li data-panel="db-tables">
+                        <a href="#db-tables">
+                            <i class="fa-solid fa-database"></i>
+                            <span>مستعرض جداول البيانات</span>
+                        </a>
+                    </li>
+                    <li data-panel="patients-crud">
+                        <a href="#patients-crud">
+                            <i class="fa-solid fa-users"></i>
+                            <span>إدارة حسابات الصيدليات والعملاء</span>
+                        </a>
+                    </li>
+                    <li data-panel="appointments-crud">
+                        <a href="#appointments-crud">
+                            <i class="fa-solid fa-file-invoice"></i>
+                            <span>الطلبيات والأدوية</span>
+                        </a>
+                    </li>
+                    <li data-panel="invoices-crud">
+                        <a href="#invoices-crud">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                            <span>الفواتير والمالية</span>
+                        </a>
+                    </li>
+                    <li data-panel="config-manager">
+                        <a href="#config-manager">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span>متغيرات الإعدادات</span>
+                        </a>
+                    </li>
+                    <li data-panel="users-manager">
+                        <a href="#users-manager">
+                            <i class="fa-solid fa-users-gear"></i>
+                            <span>حسابات المستخدمين</span>
+                        </a>
+                    </li>
+                    <li data-panel="branding-customizer">
+                        <a href="#branding-customizer">
+                            <i class="fa-solid fa-palette"></i>
+                            <span>تخصيص الهوية والمظهر</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-outline" onclick="handleDevLogout()" style="width: 100%;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>الخروج من اللوحة</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Workspace -->
+        <main class="main-content">
+            <!-- Top Navbar -->
+            <header class="navbar">
+                <div class="navbar-left">
+                    <button class="toggle-sidebar" id="dev-toggle-sidebar-btn" aria-label="Toggle Sidebar">
+                        <i class="fa-solid fa-bars-staggered"></i>
+                    </button>
+                    <div class="live-status-badge" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: var(--color-emerald);">
+                        <span class="pulse-dot"></span>
+                        <span>مستوى التحكم: صيانة المطور (Root Dev)</span>
+                    </div>
+                </div>
+                <div class="navbar-right">
+                    <button class="nav-action-btn" onclick="window.location.href='/'" title="الذهاب للواجهة الرئيسية">
+                        <i class="fa-solid fa-house-user"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-container">
+
+                <!-- 1. SQL CONSOLE PANEL -->
+                <section class="content-panel active" id="sql-console-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1>منفذ استعلامات SQL المباشر</h1>
+                            <p>قم بكتابة وتنفيذ أي استعلامات SQLite مباشرة لتصحيح أو تعديل قاعدة البيانات.</p>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-body" style="padding: 20px;">
+                            <textarea id="sql-query-input" class="sql-textarea" placeholder="SELECT * FROM patients LIMIT 10;"></textarea>
+                            
+                            <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+                                <button class="btn btn-primary" onclick="executeSqlQuery()">
+                                    <i class="fa-solid fa-play"></i> تشغيل الاستعلام (Execute)
+                                </button>
+                                <button class="btn btn-outline" onclick="clearSqlConsole()">
+                                    مسح الشاشة
+                                </button>
+                                <div style="display: flex; gap: 8px; align-items: center; margin-inline-start: auto; flex-wrap: wrap;">
+                                    <span style="font-size: 12px; color: var(--text-muted);">استعلامات سريعة:</span>
+                                    <button class="quick-sql-btn" onclick="loadQuickSql('SELECT * FROM users;')">المستخدمين</button>
+                                    <button class="quick-sql-btn" onclick="loadQuickSql('SELECT * FROM config;')">الإعدادات</button>
+                                    <button class="quick-sql-btn" onclick="loadQuickSql('SELECT * FROM audit_logs ORDER BY id DESC LIMIT 20;')">سجل الأحداث</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result Card -->
+                    <div class="card sql-result-card" id="sql-result-card" style="display: none;">
+                        <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding: 14px 20px;">
+                            <h3 style="font-size: 15px; font-weight: 700;">نتائج الاستعلام</h3>
+                        </div>
+                        <div class="card-body" style="padding: 20px;" id="sql-result-body"></div>
+                    </div>
+                </section>
+
+                <!-- 2. DB TABLES PANEL -->
+                <section class="content-panel" id="db-tables-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1>مستعرض هيكلية جداول قاعدة البيانات</h1>
+                            <p>استكشف الجداول الحالية والـ Columns المعرفة داخل ملف قاعدة البيانات sqlite.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body" style="padding: 20px;">
+                            <div id="db-tables-badges" style="margin-bottom: 20px;"></div>
+                            <h3 style="font-size: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 16px;">مخطط الجداول (Schema Explorer):</h3>
+                            <div class="table-meta-list" id="table-schema-list"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. PATIENTS CRUD PANEL -->
+                <section class="content-panel" id="patients-crud-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1>إدارة وتصحيح بيانات العملاء (الصيدليات)</h1>
+                            <p>البحث، التعديل الكامل، وإدراج سجلات وطلبيات مبيعات مباشرة لأي حساب عميل.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-actions">
+                            <div class="search-box table-search">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="dev-patient-search" placeholder="ابحث برقم الملف، الاسم، أو الهاتف..." oninput="loadDevPatients()">
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>رقم الحساب</th>
+                                        <th>اسم الصيدلية / العميل</th>
+                                        <th>الحد الائتماني (أيام)</th>
+                                        <th>رقم الهاتف</th>
+                                        <th>الموقع / العنوان</th>
+                                        <th>آخر طلبية</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dev-patients-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. APPOINTMENTS & DOCTORS CRUD PANEL -->
+                <section class="content-panel" id="appointments-crud-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1>إدارة طلبيات المبيعات ودليل الأدوية</h1>
+                            <p>تعديل حالات طلبيات المبيعات وحذفها، وإدارة دليل الأدوية وحالة التوفر بالمخازن.</p>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
+                            <h3>جدول طلبيات المبيعات (Sales Orders)</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>رقم الطلبية</th>
+                                        <th>اسم العميل</th>
+                                        <th>الدواء المطلوب</th>
+                                        <th>التاريخ والوقت</th>
+                                        <th>الكميات والجرعات</th>
+                                        <th>القيمة المبدئية</th>
+                                        <th>الحالة</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dev-appointments-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                            <h3>دليل الأدوية والمنتجات (Medicines & Products)</h3>
+                            <button class="btn btn-primary btn-sm" onclick="showAddDoctorModal()"><i class="fa-solid fa-pills"></i> إضافة منتج جديد</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>معرف المنتج</th>
+                                        <th>اسم المنتج</th>
+                                        <th>التصنيف (عربي)</th>
+                                        <th>التصنيف (إنجليزي)</th>
+                                        <th>رمز المنتج</th>
+                                        <th>الحالة</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dev-doctors-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. INVOICES CRUD PANEL -->
+                <section class="content-panel" id="invoices-crud-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1>إدارة وتعديل فواتير الحسابات والمالية</h1>
+                            <p>تعديل المبالغ الإجمالية للفواتير، وتغيير حالات الدفع وطرق السداد، وحذف الفواتير الخاطئة.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>رقم الفاتورة</th>
+                                        <th>العميل / الصيدلية</th>
+                                        <th>التاريخ</th>
+                                        <th>المبلغ الإجمالي</th>
+                                        <th>طريقة الدفع</th>
+                                        <th>الحالة</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dev-invoices-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. CONFIG MANAGER PANEL -->
+                <section class="content-panel" id="config-manager-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1>إدارة متغيرات وإعدادات المنظومة</h1>
+                            <p>تعديل وتجاوز أي قيم تكوين في جدول الإعدادات لحل مشاكل التخصيص أو المسميات.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="showAddConfigModal()">
+                            <i class="fa-solid fa-plus"></i> إضافة قيمة تكوين جديدة
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>المفتاح (Key)</th>
+                                        <th>القيمة (Value)</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="config-manager-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. USERS MANAGER PANEL -->
+                <section class="content-panel" id="users-manager-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1>إدارة حسابات وصلاحيات النظام المتقدمة</h1>
+                            <p>إعادة ضبط كلمات مرور الموظفين مباشرة أو إضافة حسابات صيانة مؤقتة للزبون.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="showAddUserModal()">
+                            <i class="fa-solid fa-user-plus"></i> إضافة حساب مستخدم
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>معرف الحساب</th>
+                                        <th>اسم الحساب</th>
+                                        <th>الصلاحية (Role)</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-manager-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 8. MAINTENANCE & DIAGNOSTICS PANEL -->
+                <section class="content-panel" id="maintenance-diagnostics-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1>صيانة قاعدة بيانات شركة الأدوية والتشخيص الخلفي</h1>
+                            <p>راقب أداء خادم السيرفر، أو قم بإجراء عمليات تصفير واستيراد قواعد البيانات بنقرة واحدة.</p>
+                        </div>
+                    </div>
+
+                    <!-- Server Diagnostics stats -->
+                    <div class="diagnostics-grid" id="dev-diagnostics-grid"></div>
+
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
+                            <h3>أدوات صيانة قاعدة البيانات السريعة</h3>
+                        </div>
+                        <div class="card-body" style="padding: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="triggerDbBackup()">
+                                <i class="fa-solid fa-cloud-arrow-down"></i> تصدير نسخة احتياطية (Backup)
+                            </button>
+                            
+                            <button class="btn btn-outline" onclick="document.getElementById('dev-import-file-input').click()">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> استيراد نسخة احتياطية (Restore)
+                            </button>
+                            <input type="file" id="dev-import-file-input" style="display: none;" accept=".json" onchange="triggerDbRestore(event)">
+                            
+                            <button class="btn btn-danger" onclick="triggerDbReset()">
+                                <i class="fa-solid fa-rotate-left"></i> إعادة ضبط وتصفير قاعدة البيانات
+                            </button>
+                            
+                            <button class="btn btn-outline" onclick="triggerClearAuditLogs()" style="color: var(--color-rose); border-color: rgba(244,63,94,0.3);">
+                                <i class="fa-solid fa-trash-can"></i> مسح سجل النشاط والعمليات بالكامل
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Audit Logs Table -->
+                    <div class="card">
+                        <div class="card-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
+                            <h3>سجل العمليات والأنشطة الأخير (Audit Logs)</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>معرف السجل</th>
+                                        <th>المستخدم</th>
+                                        <th>العملية</th>
+                                        <th>الهدف</th>
+                                        <th>الوقت والتاريخ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dev-auditlogs-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 9. BRANDING CUSTOMIZER PANEL -->
+                <section class="content-panel" id="branding-customizer-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h1>تخصيص الهوية البصرية ومظهر المنظومة</h1>
+                            <p>تحكم بألوان الوضع الداكن والفاتح، وغير شعار المنظومة ولونه ليتطابق مع هويتك التجارية.</p>
+                        </div>
+                    </div>
+
+                    <form id="branding-customizer-form" onsubmit="saveBrandingCustomizer(event)">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                            
+                            <!-- Dark Mode Colors Card -->
+                            <div class="card">
+                                <div class="card-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
+                                    <h3>ألوان الوضع الداكن (Dark Mode Palette)</h3>
+                                </div>
+                                <div class="card-body" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                                        <label>اللون الأساسي (Primary Accent)</label>
+                                        <input type="color" id="color-primary-dark" class="form-control" style="width: 60px; height: 38px; padding: 2px; cursor: pointer; border: 1px solid var(--border-color);" value="#00f2fe">
+                                    </div>
+                                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                                        <label>اللون الثانوي (Secondary Accent)</label>
+                                        <input type="color" id="color-secondary-dark" class="form-control" style="width: 60px; height: 38px; padding: 2px; cursor: pointer; border: 1px solid var(--border-color);" value="#059669">
+                                    </div>
+                                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                                        <label>خلفية الصفحة الرئيسية (Page Background)</label>
+                                        <input type="color" id="color-bg-dark" class="form-control" style="width: 60px; height: 38px; padding: 2px; cursor: pointer; border: 1px solid var(--border-color);" value="#0a0f1d">
+                                    </div>
+                                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                                        <label>خلفية الكروت والقائمة (Card Background)</label>
+                                        <input type="color" id="color-bg-sec-dark" class="form-control" style="width: 60px; height: 38px; padding: 2px; cursor: pointer; border: 1px solid var(--border-color);" value="#0f172a">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Light Mode Colors Card -->
+                            <div class="card">
+                                <div class="card-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
+                                    <h3>ألوان الوضع الفاتح (Light Mode Palette)</h3>
+                                </div>
+                                <div class="card-body" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                                        <label>اللون الأساسي (Primary Accent)</label>
+                                        <input type="color" id="color-primary-light" class="form-control" style="width: 60px; height: 38px; padding: 2px; cursor: pointer; border: 1px solid var(--border-color);" value="#0284c7">
+                                    </div>
+                                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                                        <label>اللون الثانوي (Secondary Accent)</label>
+                                        <input type="color" id="color-secondary-light" class="form-control" style="width: 60px; height: 38px; padding: 2px; cursor: pointer; border: 1px solid var(--border-color);" value="#0d9488">
+                                    </div>
+                                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                                        <label>خلفية الصفحة الرئيسية (Page Background)</label>
+                                        <input type="color" id="color-bg-light" class="form-control" style="width: 60px; height: 38px; padding: 2px; cursor: pointer; border: 1px solid var(--border-color);" value="#f1f5f9">
+                                    </div>
+                                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                                        <label>خلفية الكروت والقائمة (Card Background)</label>
+                                        <input type="color" id="color-bg-sec-light" class="form-control" style="width: 60px; height: 38px; padding: 2px; cursor: pointer; border: 1px solid var(--border-color);" value="#ffffff">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Logo Settings Card -->
+                            <div class="card">
+                                <div class="card-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
+                                    <h3>شعار المنظومة (System Logo)</h3>
+                                </div>
+                                <div class="card-body" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                                    <div class="form-group">
+                                        <label>نوع الشعار المعروض</label>
+                                        <select id="branding-logo-type" class="form-control" onchange="toggleBrandingLogoFields()">
+                                            <option value="default">شعار الشركة الافتراضي (SVG)</option>
+                                            <option value="url">شعار مخصص (رابط صورة)</option>
+                                            <option value="icon">رمز أيقونة مخصصة (FontAwesome)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" id="branding-logo-url-group" style="display: none;">
+                                        <label>رابط الصورة المخصصة (Logo Image URL)</label>
+                                        <input type="text" id="branding-logo-url" class="form-control" placeholder="https://example.com/logo.png">
+                                    </div>
+                                    <div class="form-group" id="branding-logo-icon-group" style="display: none;">
+                                        <label>كود الأيقونة (FontAwesome class)</label>
+                                        <input type="text" id="branding-logo-icon" class="form-control" placeholder="fa-solid fa-heart-pulse">
+                                        <small style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">مثال: <code>fa-solid fa-tooth</code>، <code>fa-solid fa-stethoscope</code>، <code>fa-solid fa-user-md</code></small>
+                                    </div>
+                                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                                        <label>لون هالة الشعار / لون الأيقونة (Logo Color)</label>
+                                        <input type="color" id="branding-logo-color" class="form-control" style="width: 60px; height: 38px; padding: 2px; cursor: pointer; border: 1px solid var(--border-color);" value="#00f2fe">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button type="button" class="btn btn-outline" onclick="resetBrandingToDefaults()">
+                                <i class="fa-solid fa-rotate-left"></i> استعادة الألوان الافتراضية
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-circle-check"></i> حفظ وتطبيق الهوية البصرية
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Modals Section -->
+    <!-- Edit Patient Modal -->
+    <div class="modal-backdrop" id="dev-edit-patient-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تعديل حساب العميل بالكامل</h3>
+                <button class="modal-close" onclick="closeDevModal('dev-edit-patient-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dev-edit-patient-form" onsubmit="savePatientEdit(event)">
+                    <input type="hidden" id="edit-pat-id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>اسم الصيدلية / العميل</label>
+                            <input type="text" id="edit-pat-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الهاتف</label>
+                            <input type="text" id="edit-pat-phone" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>الحد الائتماني (أيام)</label>
+                            <input type="number" id="edit-pat-age" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>التصنيف</label>
+                            <select id="edit-pat-gender" class="form-control">
+                                <option value="male">خاص / صيدلية</option>
+                                <option value="female">حكومي / مستودع</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>العنوان والموقع</label>
+                            <input type="text" id="edit-pat-address" class="form-control" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>ملاحظات التعامل التجاري والحد الائتماني العام</label>
+                            <textarea id="edit-pat-history" class="form-control" style="height: 80px;"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="padding-top: 16px;">
+                        <button type="button" class="btn btn-outline" onclick="closeDevModal('dev-edit-patient-modal')">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ وتعديل الملف</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Appointment Modal -->
+    <div class="modal-backdrop" id="dev-edit-appt-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تعديل طلبية المبيعات</h3>
+                <button class="modal-close" onclick="closeDevModal('dev-edit-appt-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dev-edit-appt-form" onsubmit="saveAppointmentEdit(event)">
+                    <input type="hidden" id="edit-appt-id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>التاريخ</label>
+                            <input type="date" id="edit-appt-date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>الوقت المتوقع للتسليم</label>
+                            <input type="time" id="edit-appt-time" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>الكميات والتفاصيل المحددة للشحنة</label>
+                            <input type="text" id="edit-appt-reason" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>قيمة الشحنة المبدئية</label>
+                            <input type="number" id="edit-appt-price" class="form-control" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>حالة الطلبية</label>
+                            <select id="edit-appt-status" class="form-control">
+                                <option value="pending">قيد التحضير (Pending)</option>
+                                <option value="confirmed">تم التأكيد/جاهز (Confirmed)</option>
+                                <option value="completed">تم التسليم (Completed)</option>
+                                <option value="cancelled">ملغي (Cancelled)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="padding-top: 16px;">
+                        <button type="button" class="btn btn-outline" onclick="closeDevModal('dev-edit-appt-modal')">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit/Add Doctor Modal -->
+    <div class="modal-backdrop" id="dev-doctor-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="dev-doctor-modal-title">تعديل بيانات الصنف الدوائي</h3>
+                <button class="modal-close" onclick="closeDevModal('dev-doctor-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dev-doctor-form" onsubmit="saveDoctorEdit(event)">
+                    <input type="hidden" id="edit-doc-id">
+                    <input type="hidden" id="doc-is-edit" value="1">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>اسم المنتج (عربي)</label>
+                            <input type="text" id="edit-doc-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>اسم المنتج (إنجليزي)</label>
+                            <input type="text" id="edit-doc-name-en" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>التخصص (عربي)</label>
+                            <input type="text" id="edit-doc-spec" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>التخصص (إنجليزي)</label>
+                            <input type="text" id="edit-doc-spec-en" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الهاتف</label>
+                            <input type="text" id="edit-doc-phone" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>حالة التواجد</label>
+                            <select id="edit-doc-status" class="form-control">
+                                <option value="available">متاح (Available)</option>
+                                <option value="busy">مشغول (Busy)</option>
+                                <option value="off">خارج الدوام (Off)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="padding-top: 16px;">
+                        <button type="button" class="btn btn-outline" onclick="closeDevModal('dev-doctor-modal')">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ المنتج</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Invoice Modal -->
+    <div class="modal-backdrop" id="dev-edit-invoice-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تعديل الفاتورة المالية</h3>
+                <button class="modal-close" onclick="closeDevModal('dev-edit-invoice-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dev-edit-invoice-form" onsubmit="saveInvoiceEdit(event)">
+                    <input type="hidden" id="edit-inv-id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>المبلغ الإجمالي للفاتورة (د.ل)</label>
+                            <input type="number" id="edit-inv-total" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>طريقة الدفع</label>
+                            <select id="edit-inv-method" class="form-control">
+                                <option value="cash">نقدي (Cash)</option>
+                                <option value="card">بطاقة مصرفية (Card)</option>
+                                <option value="transfer">تحويل مصرفي (Transfer)</option>
+                                <option value="check">صك سياحي (Check)</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>الحالة المالية</label>
+                            <select id="edit-inv-status" class="form-control">
+                                <option value="paid">مدفوعة بالكامل (Paid)</option>
+                                <option value="pending">قيد الانتظار (Pending)</option>
+                                <option value="unpaid">غير مدفوعة (Unpaid)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="padding-top: 16px;">
+                        <button type="button" class="btn btn-outline" onclick="closeDevModal('dev-edit-invoice-modal')">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ الفاتورة</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Config Modal -->
+    <div class="modal-backdrop" id="dev-config-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="dev-config-modal-title">إضافة/تعديل قيمة تكوين</h3>
+                <button class="modal-close" onclick="closeDevModal('dev-config-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dev-config-form" onsubmit="saveConfigKey(event)">
+                    <input type="hidden" id="config-is-edit" value="0">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label>مفتاح التكوين (Key)</label>
+                        <input type="text" id="config-key-input" class="form-control" placeholder="مثال: clinicNameAr" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label>القيمة (Value)</label>
+                        <input type="text" id="config-val-input" class="form-control" placeholder="مثال: مستوصف الخير" required>
+                    </div>
+                    <div class="modal-footer" style="padding-top: 16px;">
+                        <button type="button" class="btn btn-outline" onclick="closeDevModal('dev-config-modal')">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ البيانات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div class="modal-backdrop" id="dev-user-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="dev-user-modal-title">إضافة حساب مستخدم جديد</h3>
+                <button class="modal-close" onclick="closeDevModal('dev-user-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dev-user-form" onsubmit="saveUserAccount(event)">
+                    <input type="hidden" id="user-is-edit" value="0">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label>اسم المستخدم (Username)</label>
+                        <input type="text" id="user-name-input" class="form-control" placeholder="مثال: main_user" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;" id="user-role-group">
+                        <label>الصلاحية (Role)</label>
+                        <select id="user-role-input" class="form-control">
+                            <option value="admin">مدير (Admin)</option>
+                            <option value="supervisor">مشرف (Supervisor)</option>
+                            <option value="employee">موظف (Employee)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label>كلمة المرور الجديدة (New Password)</label>
+                        <input type="password" id="user-password-input" class="form-control" placeholder="أدخل كلمة مرور قوية..." required>
+                    </div>
+                    <div class="modal-footer" style="padding-top: 16px;">
+                        <button type="button" class="btn btn-outline" onclick="closeDevModal('dev-user-modal')">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ الحساب</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        let developerKey = sessionStorage.getItem('dev_key') || '';
+
+        // Dynamic Theme and Logo Branding Customizer
+        function applyDynamicTheme(config) {
+            if (!config) return;
+            let styleEl = document.getElementById("dynamic-theme-style");
+            if (!styleEl) {
+                styleEl = document.createElement("style");
+                styleEl.id = "dynamic-theme-style";
+                document.head.appendChild(styleEl);
+            }
+            
+            const primaryDark = config.themePrimaryColorDark || '#00f2fe';
+            const secondaryDark = config.themeSecondaryColorDark || '#059669';
+            const bgDark = config.themeBgColorDark || '#0a0f1d';
+            const bgSecDark = config.themeBgSecondaryColorDark || '#0f172a';
+            
+            const primaryLight = config.themePrimaryColorLight || '#0284c7';
+            const secondaryLight = config.themeSecondaryColorLight || '#0d9488';
+            const bgLight = config.themeBgColorLight || '#f1f5f9';
+            const bgSecLight = config.themeBgSecondaryColorLight || '#ffffff';
+            
+            styleEl.innerHTML = `
+                html.dark {
+                    --accent-primary: ${primaryDark} !important;
+                    --accent-secondary: ${secondaryDark} !important;
+                    --bg-primary: ${bgDark} !important;
+                    --bg-secondary: ${bgSecDark} !important;
+                }
+                html.light {
+                    --accent-primary: ${primaryLight} !important;
+                    --accent-secondary: ${secondaryLight} !important;
+                    --bg-primary: ${bgLight} !important;
+                    --bg-secondary: ${bgSecLight} !important;
+                }
+                .brand-logo i, .login-logo i {
+                    color: ${config.logoColor || 'var(--accent-primary)'} !important;
+                }
+            `;
+            
+            applyLogoBranding(config);
+        }
+
+        function applyLogoBranding(config) {
+            if (!config) return;
+            const logoType = config.logoType || 'default'; // 'default', 'url', 'icon'
+            const logoUrl = config.logoUrl || 'logo.svg';
+            const logoIcon = config.logoIcon || 'fa-solid fa-laptop-medical';
+            const logoColor = config.logoColor || '';
+
+            const containers = [
+                document.getElementById('login-logo-container'),
+                document.getElementById('sidebar-logo-container'),
+                document.getElementById('dev-login-logo-container'),
+                document.getElementById('dev-sidebar-logo-container')
+            ];
+
+            containers.forEach(container => {
+                if (!container) return;
+                
+                const isLarge = container.id.includes('login');
+                const styleHeight = isLarge ? '64px' : '38px';
+                const iconSize = isLarge ? '36px' : '22px';
+                
+                let html = '';
+                if (logoType === 'url') {
+                    html = `<img src="${logoUrl}" alt="Logo" class="app-logo-img ${isLarge ? '' : 'pulse-icon'}" style="height: ${styleHeight}; object-fit: contain; ${logoColor ? `filter: drop-shadow(0px 0px 1px ${logoColor});` : ''}">`;
+                } else if (logoType === 'icon') {
+                    html = `<i class="${logoIcon}" style="font-size: ${iconSize}; color: ${logoColor || 'var(--accent-primary)'};"></i>`;
+                } else {
+                    html = `<img src="logo.svg" alt="Logo" class="app-logo-img ${isLarge ? '' : 'pulse-icon'}" style="height: ${styleHeight}; object-fit: contain; ${logoColor ? `filter: drop-shadow(0px 0px 1px ${logoColor});` : ''}">`;
+                }
+                
+                container.innerHTML = html;
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Fetch configuration to apply custom theme on page load
+            try {
+                const configRes = await fetch('/api/config');
+                if (configRes.ok) {
+                    const config = await configRes.json();
+                    applyDynamicTheme(config);
+                }
+            } catch (e) {
+                console.error("Failed to load initial config theme:", e);
+            }
+
+            if (developerKey) {
+                showDashboard();
+            } else {
+                document.getElementById('dev-login-screen').style.display = 'flex';
+                document.getElementById('dev-app-layout').style.display = 'none';
+            }
+            setupNavigation();
+        });
+
+        // Developer auth
+        async function handleDevLogin(e) {
+            e.preventDefault();
+            const key = document.getElementById('dev-key-input').value;
+            const errEl = document.getElementById('dev-login-error');
+            errEl.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/developer/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key })
+                });
+
+                if (!res.ok) throw new Error('رمز الدخول غير صحيح');
+                
+                developerKey = key;
+                sessionStorage.setItem('dev_key', key);
+                showDashboard();
+            } catch (err) {
+                errEl.style.display = 'flex';
+                document.getElementById('dev-key-input').value = '';
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('dev-login-screen').style.display = 'none';
+            document.getElementById('dev-app-layout').style.display = 'flex';
+            
+            // Reload all panel contents
+            loadTables();
+            loadDevPatients();
+            loadDevAppointments();
+            loadDevDoctors();
+            loadDevInvoices();
+            loadConfigs();
+            loadUsers();
+            loadDiagnostics();
+            loadBrandingFields();
+        }
+
+        function handleDevLogout() {
+            sessionStorage.removeItem('dev_key');
+            developerKey = '';
+            document.getElementById('dev-login-screen').style.display = 'flex';
+            document.getElementById('dev-app-layout').style.display = 'none';
+        }
+
+        // Api Call helper
+        async function devApiCall(method, endpoint, body = null) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-Developer-Key': developerKey
+            };
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+
+            const res = await fetch(endpoint, options);
+            if (res.status === 403) {
+                alert('عذراً، انتهت صلاحية الجلسة أو الرمز غير صالح.');
+                handleDevLogout();
+                return;
+            }
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'خطأ غير معروف');
+            return data;
+        }
+
+        // Sidebar Navigation
+        function setupNavigation() {
+            const items = document.querySelectorAll(".sidebar-menu li");
+            items.forEach(item => {
+                item.addEventListener("click", () => {
+                    items.forEach(li => li.classList.remove("active"));
+                    item.classList.add("active");
+                    const panelId = item.getAttribute("data-panel");
+                    
+                    document.querySelectorAll(".content-panel").forEach(p => {
+                        p.classList.toggle("active", p.id === `${panelId}-panel`);
+                    });
+
+                    if (panelId === 'maintenance-diagnostics') {
+                        loadDiagnostics();
+                    } else if (panelId === 'branding-customizer') {
+                        loadBrandingFields();
+                    }
+                    
+                    // Close sidebar on mobile after clicking
+                    if (window.innerWidth <= 768) {
+                        document.getElementById('dev-sidebar').classList.remove('open');
+                    }
+                });
+            });
+
+
+            // Toggle sidebar button click
+            const toggleSidebarBtn = document.getElementById("dev-toggle-sidebar-btn");
+            const sidebar = document.getElementById("dev-sidebar");
+            if (toggleSidebarBtn && sidebar) {
+                toggleSidebarBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    sidebar.classList.toggle("open");
+                });
+            }
+            document.addEventListener("click", () => {
+                if (window.innerWidth <= 768 && sidebar) {
+                    sidebar.classList.remove("open");
+                }
+            });
+        }
+
+        // 1. SQL Console Logic
+        function loadQuickSql(sql) {
+            document.getElementById('sql-query-input').value = sql;
+        }
+
+        function clearSqlConsole() {
+            document.getElementById('sql-query-input').value = '';
+            document.getElementById('sql-result-card').style.display = 'none';
+        }
+
+        async function executeSqlQuery() {
+            const query = document.getElementById('sql-query-input').value;
+            const resultCard = document.getElementById('sql-result-card');
+            const resultBody = document.getElementById('sql-result-body');
+
+            if (!query.trim()) {
+                alert('يرجى كتابة استعلام SQL أولاً');
+                return;
+            }
+
+            resultCard.style.display = 'block';
+            resultBody.innerHTML = '<div style="text-align: center; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التشغيل...</div>';
+
+            try {
+                const res = await devApiCall('POST', '/api/developer/sql', { query });
+                
+                if (res.type === 'select') {
+                    if (res.data.length === 0) {
+                        resultBody.innerHTML = '<div class="sql-success-msg">تم تشغيل الاستعلام بنجاح. النتيجة: 0 صفوف.</div>';
+                        return;
+                    }
+                    
+                    const cols = Object.keys(res.data[0]);
+                    let tableHTML = `
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">إجمالي الصفوف: ${res.data.length}</div>
+                        <div class="table-responsive">
+                            <table class="table" style="font-size: 12px;">
+                                <thead>
+                                    <tr>
+                                        ${cols.map(c => `<th>${c}</th>`).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${res.data.map(row => `
+                                        <tr>
+                                            ${cols.map(c => `<td>${row[c] !== null ? row[c] : '<span style="color: var(--text-muted)">NULL</span>'}</td>`).join('')}
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    resultBody.innerHTML = tableHTML;
+                } else {
+                    resultBody.innerHTML = `
+                        <div class="sql-success-msg">
+                            <i class="fa-solid fa-circle-check"></i> تم تشغيل استعلام الكتابة والتعديل بنجاح.<br>
+                            <strong>الصفوف المعدلة:</strong> ${res.changes}<br>
+                            <strong>آخر ID مدخل:</strong> ${res.lastID || '—'}
+                        </div>
+                    `;
+                    // Refresh all lists
+                    loadDevPatients();
+                    loadDevAppointments();
+                    loadDevDoctors();
+                    loadDevInvoices();
+                    loadConfigs();
+                    loadUsers();
+                }
+            } catch (err) {
+                resultBody.innerHTML = `<div class="sql-error-msg"><i class="fa-solid fa-circle-exclamation"></i> خطأ: ${err.message}</div>`;
+            }
+        }
+
+        // 2. DB Tables schema explorer
+        async function loadTables() {
+            const badgesDiv = document.getElementById('db-tables-badges');
+            const schemaDiv = document.getElementById('table-schema-list');
+            try {
+                const res = await devApiCall('GET', '/api/developer/tables');
+                badgesDiv.innerHTML = '';
+                schemaDiv.innerHTML = '';
+
+                res.tables.forEach(t => {
+                    const badge = document.createElement('span');
+                    badge.className = 'db-table-badge';
+                    badge.innerHTML = `<i class="fa-solid fa-table"></i> ${t.name}`;
+                    badge.addEventListener('click', () => {
+                        const items = document.querySelectorAll(".sidebar-menu li");
+                        items.forEach(li => li.classList.toggle("active", li.getAttribute("data-panel") === "sql-console"));
+                        document.querySelectorAll(".content-panel").forEach(p => p.classList.toggle("active", p.id === "sql-console-panel"));
+                        loadQuickSql(`SELECT * FROM ${t.name} LIMIT 30;`);
+                        executeSqlQuery();
+                    });
+                    badgesDiv.appendChild(badge);
+
+                    const card = document.createElement('div');
+                    card.className = 'table-meta-card';
+                    card.innerHTML = `
+                        <h4>
+                            <span><i class="fa-solid fa-table"></i> ${t.name}</span>
+                            <button class="quick-sql-btn" onclick="loadQuickSql('SELECT * FROM ${t.name} LIMIT 10;')"><i class="fa-solid fa-magnifying-glass"></i> عرض</button>
+                        </h4>
+                        <ul>
+                            ${t.columns.map(c => `<li><i class="fa-solid fa-circle-chevron-left" style="color: var(--accent-primary); font-size:10px; margin-left: 6px;"></i> ${c}</li>`).join('')}
+                        </ul>
+                    `;
+                    schemaDiv.appendChild(card);
+                });
+            } catch (err) {
+                badgesDiv.innerHTML = 'فشل تحميل هيكلية الجداول';
+            }
+        }
+
+        // 3. Patients Manager Logic
+        async function loadDevPatients() {
+            const tbody = document.getElementById('dev-patients-tbody');
+            const searchQuery = document.getElementById('dev-patient-search').value.trim().toLowerCase();
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">جاري تحميل سجلات العملاء...</td></tr>';
+            try {
+                let sql = 'SELECT * FROM patients ORDER BY id DESC';
+                const res = await devApiCall('POST', '/api/developer/sql', { query: sql });
+                tbody.innerHTML = '';
+                
+                const filtered = res.data.filter(p => 
+                    !searchQuery || 
+                    p.name.toLowerCase().includes(searchQuery) || 
+                    p.id.toString().includes(searchQuery) || 
+                    p.phone.includes(searchQuery) ||
+                    (p.address && p.address.toLowerCase().includes(searchQuery))
+                );
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا يوجد عملاء مطابقين للبحث</td></tr>';
+                    return;
+                }
+
+                filtered.forEach(pat => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>#${pat.id}</strong></td>
+                        <td>${pat.name}</td>
+                        <td>${pat.age}</td>
+                        <td><code>${pat.phone}</code></td>
+                        <td>${pat.address || '—'}</td>
+                        <td><span class="noti-badge">${pat.lastVisit}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline" onclick="editPatient('${pat.id}', '${pat.name.replace(/'/g, "\\'")}', ${pat.age}, '${pat.phone}', '${(pat.address || '').replace(/'/g, "\\'")}', '${pat.gender}', '${(pat.history || '').replace(/'/g, "\\'")}')">تعديل</button>
+                            <button class="btn btn-sm btn-danger btn-icon" onclick="deletePatient(${pat.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--color-rose);">فشل تحميل العملاء: ${err.message}</td></tr>`;
+            }
+        }
+
+        function editPatient(id, name, age, phone, address, gender, history) {
+            document.getElementById('edit-pat-id').value = id;
+            document.getElementById('edit-pat-name').value = name;
+            document.getElementById('edit-pat-phone').value = phone;
+            document.getElementById('edit-pat-age').value = age;
+            document.getElementById('edit-pat-gender').value = gender;
+            document.getElementById('edit-pat-address').value = address;
+            document.getElementById('edit-pat-history').value = history;
+            openDevModal('dev-edit-patient-modal');
+        }
+
+        async function savePatientEdit(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('edit-pat-id').value);
+            const name = document.getElementById('edit-pat-name').value;
+            const phone = document.getElementById('edit-pat-phone').value;
+            const age = parseInt(document.getElementById('edit-pat-age').value);
+            const gender = document.getElementById('edit-pat-gender').value;
+            const address = document.getElementById('edit-pat-address').value;
+            const history = document.getElementById('edit-pat-history').value;
+
+            try {
+                const sql = `UPDATE patients SET name = ?, phone = ?, age = ?, gender = ?, address = ?, history = ? WHERE id = ?`;
+                await devApiCall('POST', '/api/developer/sql', { query: sql, params: [name, phone, age, gender, address, history, id] });
+                closeDevModal('dev-edit-patient-modal');
+                loadDevPatients();
+            } catch (err) {
+                alert('فشل تعديل الملف: ' + err.message);
+            }
+        }
+
+        async function deletePatient(id) {
+            if (!confirm(`تحذير: سيؤدي حذف العميل رقم #${id} إلى حذف جميع طلبياته وفواتيره بشكل نهائي. هل تريد الاستمرار؟`)) return;
+            try {
+                // Cascade delete patient from all tables
+                await devApiCall('POST', '/api/developer/sql', { query: `DELETE FROM patients WHERE id = ?`, params: [id] });
+                await devApiCall('POST', '/api/developer/sql', { query: `DELETE FROM medical_records WHERE patientId = ?`, params: [id] });
+                await devApiCall('POST', '/api/developer/sql', { query: `DELETE FROM appointments WHERE patientId = ?`, params: [id] });
+                await devApiCall('POST', '/api/developer/sql', { query: `DELETE FROM invoices WHERE patientId = ?`, params: [id] });
+                loadDevPatients();
+            } catch (err) {
+                alert('فشل حذف العميل: ' + err.message);
+            }
+        }
+
+        // 4. Appointments & Doctors Logic
+        async function loadDevAppointments() {
+            const tbody = document.getElementById('dev-appointments-tbody');
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">جاري تحميل المواعيد...</td></tr>';
+            try {
+                const apptsRes = await devApiCall('POST', '/api/developer/sql', { query: 'SELECT * FROM appointments ORDER BY date DESC, time DESC' });
+                const patientsRes = await devApiCall('POST', '/api/developer/sql', { query: 'SELECT id, name FROM patients' });
+                const docsRes = await devApiCall('POST', '/api/developer/sql', { query: 'SELECT id, name FROM doctors' });
+                
+                tbody.innerHTML = '';
+                if (apptsRes.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد مواعيد مسجلة</td></tr>';
+                    return;
+                }
+
+                apptsRes.data.forEach(app => {
+                    const patient = patientsRes.data.find(p => p.id === app.patientId);
+                    const doctor = docsRes.data.find(d => d.id === app.doctorId);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>#${app.id}</strong></td>
+                        <td>${patient ? patient.name : `عميل مفقود (#${app.patientId})`}</td>
+                        <td>${doctor ? doctor.name : `منتج مفقود (#${app.doctorId})`}</td>
+                        <td><code>${app.date} ${app.time}</code></td>
+                        <td>${app.reason}</td>
+                        <td>${app.price !== null ? `${app.price} د.ل` : 'مجاني'}</td>
+                        <td><span class="noti-badge status-${app.status}">${app.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline" onclick="editAppointment('${app.id}', '${app.date}', '${app.time}', '${app.reason.replace(/'/g, "\\'")}', ${app.price || 0}, '${app.status}')">تعديل</button>
+                            <button class="btn btn-sm btn-danger btn-icon" onclick="deleteAppointment(${app.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--color-rose);">فشل تحميل المواعيد: ${err.message}</td></tr>`;
+            }
+        }
+
+        function editAppointment(id, date, time, reason, price, status) {
+            document.getElementById('edit-appt-id').value = id;
+            document.getElementById('edit-appt-date').value = date;
+            document.getElementById('edit-appt-time').value = time;
+            document.getElementById('edit-appt-reason').value = reason;
+            document.getElementById('edit-appt-price').value = price;
+            document.getElementById('edit-appt-status').value = status;
+            openDevModal('dev-edit-appt-modal');
+        }
+
+        async function saveAppointmentEdit(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('edit-appt-id').value);
+            const date = document.getElementById('edit-appt-date').value;
+            const time = document.getElementById('edit-appt-time').value;
+            const reason = document.getElementById('edit-appt-reason').value;
+            const price = parseFloat(document.getElementById('edit-appt-price').value) || 0;
+            const status = document.getElementById('edit-appt-status').value;
+
+            try {
+                const sql = `UPDATE appointments SET date = ?, time = ?, reason = ?, price = ?, status = ? WHERE id = ?`;
+                await devApiCall('POST', '/api/developer/sql', { query: sql, params: [date, time, reason, price, status, id] });
+                closeDevModal('dev-edit-appt-modal');
+                loadDevAppointments();
+            } catch (err) {
+                alert('فشل تعديل الموعد: ' + err.message);
+            }
+        }
+
+        async function deleteAppointment(id) {
+            if (!confirm(`هل تريد بالتأكيد حذف حجز الموعد رقم #${id}؟`)) return;
+            try {
+                await devApiCall('POST', '/api/developer/sql', { query: `DELETE FROM appointments WHERE id = ?`, params: [id] });
+                loadDevAppointments();
+            } catch (err) {
+                alert('فشل حذف الموعد: ' + err.message);
+            }
+        }
+
+        async function loadDevDoctors() {
+            const tbody = document.getElementById('dev-doctors-tbody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">جاري تحميل الأدوية والأصناف...</td></tr>';
+            try {
+                const res = await devApiCall('POST', '/api/developer/sql', { query: 'SELECT * FROM doctors ORDER BY id ASC' });
+                tbody.innerHTML = '';
+                res.data.forEach(doc => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>#${doc.id}</strong></td>
+                        <td>${doc.name}</td>
+                        <td>${doc.specialty}</td>
+                        <td>${doc.specialtyEn}</td>
+                        <td><code>${doc.phone || '—'}</code></td>
+                        <td><span class="noti-badge">${doc.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline" onclick="editDoctor('${doc.id}', '${doc.name.replace(/'/g, "\\'")}', '${doc.nameEn.replace(/'/g, "\\'")}', '${doc.specialty.replace(/'/g, "\\'")}', '${doc.specialtyEn.replace(/'/g, "\\'")}', '${doc.phone}', '${doc.status}')">تعديل</button>
+                            <button class="btn btn-sm btn-danger btn-icon" onclick="deleteDoctor(${doc.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--color-rose);">فشل تحميل الأدوية والأصناف: ${err.message}</td></tr>`;
+            }
+        }
+
+        function showAddDoctorModal() {
+            document.getElementById('doc-is-edit').value = '0';
+            document.getElementById('dev-doctor-form').reset();
+            document.getElementById('dev-doctor-modal-title').innerText = 'إضافة دواء جديد للمنظومة';
+            
+            // Auto generate new doc id
+            const nextId = 1 + (document.querySelectorAll('#dev-doctors-tbody tr').length);
+            document.getElementById('edit-doc-id').value = nextId;
+            openDevModal('dev-doctor-modal');
+        }
+
+        function editDoctor(id, name, nameEn, spec, specEn, phone, status) {
+            document.getElementById('doc-is-edit').value = '1';
+            document.getElementById('edit-doc-id').value = id;
+            document.getElementById('edit-doc-name').value = name;
+            document.getElementById('edit-doc-name-en').value = nameEn;
+            document.getElementById('edit-doc-spec').value = spec;
+            document.getElementById('edit-doc-spec-en').value = specEn;
+            document.getElementById('edit-doc-phone').value = phone;
+            document.getElementById('edit-doc-status').value = status;
+            document.getElementById('dev-doctor-modal-title').innerText = 'تعديل بيانات الصنف الدوائي';
+            openDevModal('dev-doctor-modal');
+        }
+
+        async function saveDoctorEdit(e) {
+            e.preventDefault();
+            const isEdit = document.getElementById('doc-is-edit').value === '1';
+            const id = parseInt(document.getElementById('edit-doc-id').value);
+            const name = document.getElementById('edit-doc-name').value;
+            const nameEn = document.getElementById('edit-doc-name-en').value;
+            const specialty = document.getElementById('edit-doc-spec').value;
+            const specialtyEn = document.getElementById('edit-doc-spec-en').value;
+            const phone = document.getElementById('edit-doc-phone').value;
+            const status = document.getElementById('edit-doc-status').value;
+
+            try {
+                let sql = '';
+                if (isEdit) {
+                    sql = `UPDATE doctors SET name = ?, nameEn = ?, specialty = ?, specialtyEn = ?, phone = ?, status = ? WHERE id = ?`;
+                    await devApiCall('POST', '/api/developer/sql', { query: sql, params: [name, nameEn, specialty, specialtyEn, phone, status, id] });
+                } else {
+                    sql = `INSERT OR REPLACE INTO doctors (id, name, nameEn, specialty, specialtyEn, status, visits, phone) VALUES (?, ?, ?, ?, ?, ?, 0, ?)`;
+                    await devApiCall('POST', '/api/developer/sql', { query: sql, params: [id, name, nameEn, specialty, specialtyEn, status, phone] });
+                }
+                closeDevModal('dev-doctor-modal');
+                loadDevDoctors();
+            } catch (err) {
+                alert('فشل حفظ بيانات المنتج: ' + err.message);
+            }
+        }
+
+        async function deleteDoctor(id) {
+            if (!confirm(`هل أنت متأكد من حذف الصنف رقم #${id} نهائياً وإلغاء جميع طلبياته المترابطة؟`)) return;
+            try {
+                await devApiCall('POST', '/api/developer/sql', { query: `DELETE FROM doctors WHERE id = ?`, params: [id] });
+                await devApiCall('POST', '/api/developer/sql', { query: `DELETE FROM appointments WHERE doctorId = ?`, params: [id] });
+                loadDevDoctors();
+            } catch (err) {
+                alert('فشل الحذف: ' + err.message);
+            }
+        }
+
+        // 5. Invoices CRUD Logic
+        async function loadDevInvoices() {
+            const tbody = document.getElementById('dev-invoices-tbody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">جاري تحميل الفواتير المالية...</td></tr>';
+            try {
+                const invRes = await devApiCall('POST', '/api/developer/sql', { query: 'SELECT * FROM invoices ORDER BY id DESC' });
+                const patientsRes = await devApiCall('POST', '/api/developer/sql', { query: 'SELECT id, name FROM patients' });
+                tbody.innerHTML = '';
+                if (invRes.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد فواتير مسجلة</td></tr>';
+                    return;
+                }
+                invRes.data.forEach(inv => {
+                    const patient = patientsRes.data.find(p => p.id === inv.patientId);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>#${inv.id}</strong></td>
+                        <td>${patient ? patient.name : `عميل مفقود (#${inv.patientId})`}</td>
+                        <td><code>${inv.date}</code></td>
+                        <td><strong>${inv.total} د.ل</strong></td>
+                        <td><span class="noti-badge">${inv.paymentMethod}</span></td>
+                        <td><span class="noti-badge">${inv.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline" onclick="editInvoice(${inv.id}, ${inv.total}, '${inv.paymentMethod}', '${inv.status}')">تعديل</button>
+                            <button class="btn btn-sm btn-danger btn-icon" onclick="deleteInvoice(${inv.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--color-rose);">فشل تحميل الفواتير: ${err.message}</td></tr>`;
+            }
+        }
+
+        function editInvoice(id, total, method, status) {
+            document.getElementById('edit-inv-id').value = id;
+            document.getElementById('edit-inv-total').value = total;
+            document.getElementById('edit-inv-method').value = method;
+            document.getElementById('edit-inv-status').value = status;
+            openDevModal('dev-edit-invoice-modal');
+        }
+
+        async function saveInvoiceEdit(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('edit-inv-id').value);
+            const total = parseFloat(document.getElementById('edit-inv-total').value) || 0;
+            const paymentMethod = document.getElementById('edit-inv-method').value;
+            const status = document.getElementById('edit-inv-status').value;
+
+            try {
+                const sql = `UPDATE invoices SET total = ?, paymentMethod = ?, status = ? WHERE id = ?`;
+                await devApiCall('POST', '/api/developer/sql', { query: sql, params: [total, paymentMethod, status, id] });
+                closeDevModal('dev-edit-invoice-modal');
+                loadDevInvoices();
+            } catch (err) {
+                alert('فشل تعديل الفاتورة: ' + err.message);
+            }
+        }
+
+        async function deleteInvoice(id) {
+            if (!confirm(`هل تريد بالتأكيد حذف مستند الفاتورة رقم #${id}؟`)) return;
+            try {
+                await devApiCall('POST', '/api/developer/sql', { query: `DELETE FROM invoices WHERE id = ?`, params: [id] });
+                loadDevInvoices();
+            } catch (err) {
+                alert('فشل حذف الفاتورة: ' + err.message);
+            }
+        }
+
+        // 6. Config variables manager
+        async function loadConfigs() {
+            const tbody = document.getElementById('config-manager-tbody');
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">جاري تحميل الإعدادات...</td></tr>';
+            try {
+                const res = await devApiCall('POST', '/api/developer/sql', { query: 'SELECT * FROM config ORDER BY key ASC' });
+                tbody.innerHTML = '';
+                res.data.forEach(cfg => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${cfg.key}</strong></td>
+                        <td><code>${cfg.value}</code></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline" onclick="editConfigKey('${cfg.key}', '${cfg.value.replace(/'/g, "\\'")}')">تعديل</button>
+                            <button class="btn btn-sm btn-danger btn-icon" onclick="deleteConfigKey('${cfg.key}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--color-rose);">فشل جلب التكوين: ${err.message}</td></tr>`;
+            }
+        }
+
+        function showAddConfigModal() {
+            document.getElementById('config-is-edit').value = '0';
+            document.getElementById('config-key-input').disabled = false;
+            document.getElementById('dev-config-form').reset();
+            document.getElementById('dev-config-modal-title').innerText = 'إضافة قيمة تكوين جديدة';
+            openDevModal('dev-config-modal');
+        }
+
+        function editConfigKey(key, val) {
+            document.getElementById('config-is-edit').value = '1';
+            document.getElementById('config-key-input').value = key;
+            document.getElementById('config-key-input').disabled = true;
+            document.getElementById('config-val-input').value = val;
+            document.getElementById('dev-config-modal-title').innerText = 'تعديل قيمة التكوين';
+            openDevModal('dev-config-modal');
+        }
+
+        async function saveConfigKey(e) {
+            e.preventDefault();
+            const key = document.getElementById('config-key-input').value;
+            const val = document.getElementById('config-val-input').value;
+            const isEdit = document.getElementById('config-is-edit').value === '1';
+
+            try {
+                if (isEdit) {
+                    await devApiCall('POST', '/api/developer/sql', { query: 'UPDATE config SET value = ? WHERE key = ?', params: [val, key] });
+                } else {
+                    await devApiCall('POST', '/api/developer/sql', { query: 'INSERT INTO config (key, value) VALUES (?, ?)', params: [key, val] });
+                }
+                closeDevModal('dev-config-modal');
+                loadConfigs();
+            } catch (err) {
+                alert('فشل حفظ التكوين: ' + err.message);
+            }
+        }
+
+        async function deleteConfigKey(key) {
+            if (!confirm(`هل أنت متأكد من حذف مفتاح الإعداد "${key}" نهائياً؟`)) return;
+            try {
+                await devApiCall('POST', '/api/developer/sql', { query: `DELETE FROM config WHERE key = ?`, params: [key] });
+                loadConfigs();
+            } catch (err) {
+                alert('فشل الحذف: ' + err.message);
+            }
+        }
+
+        // 7. Users Manager Logic
+        async function loadUsers() {
+            const tbody = document.getElementById('users-manager-tbody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">جاري التحميل...</td></tr>';
+            try {
+                const res = await devApiCall('POST', '/api/developer/sql', { query: 'SELECT id, username, role FROM users ORDER BY id ASC' });
+                tbody.innerHTML = '';
+                res.data.forEach(user => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>#${user.id}</td>
+                        <td><strong>${user.username}</strong></td>
+                        <td><span class="noti-badge">${user.role}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline" onclick="changeUserPass('${user.username}')">تغيير كلمة المرور</button>
+                            <button class="btn btn-sm btn-danger btn-icon" ${user.username === 'admin' ? 'disabled' : ''} onclick="deleteUserAccount('${user.username}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--color-rose);">فشل تحميل الحسابات: ${err.message}</td></tr>`;
+            }
+        }
+
+        function showAddUserModal() {
+            document.getElementById('user-is-edit').value = '0';
+            document.getElementById('user-name-input').disabled = false;
+            document.getElementById('user-role-group').style.display = 'block';
+            document.getElementById('dev-user-form').reset();
+            document.getElementById('dev-user-modal-title').innerText = 'إضافة حساب مستخدم جديد';
+            openDevModal('dev-user-modal');
+        }
+
+        function changeUserPass(username) {
+            document.getElementById('user-is-edit').value = '1';
+            document.getElementById('user-name-input').value = username;
+            document.getElementById('user-name-input').disabled = true;
+            document.getElementById('user-role-group').style.display = 'none';
+            document.getElementById('dev-user-form').reset();
+            document.getElementById('user-name-input').value = username;
+            document.getElementById('dev-user-modal-title').innerText = `تعديل كلمة مرور الحساب (${username})`;
+            openDevModal('dev-user-modal');
+        }
+
+        async function saveUserAccount(e) {
+            e.preventDefault();
+            const username = document.getElementById('user-name-input').value;
+            const role = document.getElementById('user-role-input').value;
+            const password = document.getElementById('user-password-input').value;
+            const isEdit = document.getElementById('user-is-edit').value === '1';
+
+            try {
+                if (isEdit) {
+                    await devApiCall('POST', '/api/developer/user/password', { username, password });
+                    alert('تم تعديل كلمة المرور بنجاح');
+                } else {
+                    await devApiCall('POST', '/api/developer/user/create', { username, role, password });
+                    alert('تم إنشاء الحساب بنجاح');
+                }
+                closeDevModal('dev-user-modal');
+                loadUsers();
+            } catch (err) {
+                alert('فشل حفظ الحساب: ' + err.message);
+            }
+        }
+
+        async function deleteUserAccount(username) {
+            if (!confirm(`هل أنت متأكد من حذف حساب المستخدم "${username}" نهائياً؟`)) return;
+            try {
+                await devApiCall('POST', '/api/developer/sql', { query: `DELETE FROM users WHERE username = ?`, params: [username] });
+                loadUsers();
+            } catch (err) {
+                alert('فشل حذف الحساب: ' + err.message);
+            }
+        }
+
+        // 8. Server Diagnostics & Database Maintenance
+        async function loadDiagnostics() {
+            const grid = document.getElementById('dev-diagnostics-grid');
+            grid.innerHTML = '<div style="text-align: center; padding: 20px; grid-column: span 4;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري استرجاع التشخيص...</div>';
+
+            try {
+                const stats = await devApiCall('GET', '/api/developer/diagnostics');
+                
+                // Format uptime
+                const days = Math.floor(stats.uptime / 86400);
+                const hours = Math.floor((stats.uptime % 86400) / 3600);
+                const mins = Math.floor((stats.uptime % 3600) / 60);
+                const uptimeStr = `${days} يوم، ${hours} ساعة، ${mins} دقيقة`;
+
+                // RAM MB
+                const ramMB = Math.round(stats.memory.heapUsed / 1024 / 1024);
+                const ramTotalMB = Math.round(stats.memory.heapTotal / 1024 / 1024);
+
+                grid.innerHTML = `
+                    <div class="diagnostic-card">
+                        <span>بيئة التشغيل (Platform)</span>
+                        <h4>${stats.platform} (${stats.arch})</h4>
+                    </div>
+                    <div class="diagnostic-card">
+                        <span>إصدار Node.js</span>
+                        <h4>${stats.nodeVersion}</h4>
+                    </div>
+                    <div class="diagnostic-card">
+                        <span>مدة تشغيل الخادم (Uptime)</span>
+                        <h4>${uptimeStr}</h4>
+                    </div>
+                    <div class="diagnostic-card">
+                        <span>استهلاك الذاكرة (RAM Usage)</span>
+                        <h4>${ramMB} MB / ${ramTotalMB} MB</h4>
+                    </div>
+                    <div class="diagnostic-card" style="grid-column: span 2;">
+                        <span>مسار قاعدة البيانات في السيرفر</span>
+                        <h4 style="font-size:11px; font-family:monospace; word-break:break-all;">${stats.dbFile}</h4>
+                    </div>
+                `;
+
+                // Load Audit Logs Table
+                loadDevAuditLogs();
+            } catch (err) {
+                grid.innerHTML = `<div style="text-align: center; color: var(--color-rose); grid-column: span 4;">فشل جلب التشخيص: ${err.message}</div>`;
+            }
+        }
+
+        async function loadDevAuditLogs() {
+            const tbody = document.getElementById('dev-auditlogs-tbody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">جاري تحميل السجلات الأنشطة...</td></tr>';
+            try {
+                const res = await devApiCall('POST', '/api/developer/sql', { query: 'SELECT * FROM audit_logs ORDER BY id DESC LIMIT 100' });
+                tbody.innerHTML = '';
+                if (res.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">سجل الأحداث فارغ</td></tr>';
+                    return;
+                }
+                res.data.forEach(log => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>#${log.id}</td>
+                        <td><strong>${log.username}</strong></td>
+                        <td><span class="noti-badge">${log.action}</span></td>
+                        <td>${log.target}</td>
+                        <td><code>${log.timestamp}</code></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--color-rose);">فشل تحميل السجلات: ${err.message}</td></tr>`;
+            }
+        }
+
+        // System actions
+        async function triggerDbReset() {
+            if (!confirm("⚠️ تحذير خطير جداً: سيؤدي هذا لتصفير قاعدة البيانات بالكامل ومسح جميع العملاء والفواتير والطلبيات وإعادتها للقيم الافتراضية للشركة! هل أنت متأكد من إجراء التصفير؟")) return;
+            try {
+                const res = await devApiCall('POST', '/api/developer/reset');
+                alert(res.message || 'تم إعادة ضبط قاعدة البيانات بنجاح!');
+                showDashboard();
+            } catch (err) {
+                alert('فشل التصفير: ' + err.message);
+            }
+        }
+
+        async function triggerClearAuditLogs() {
+            if (!confirm("هل تريد بالتأكيد مسح كافة سجلات الأنشطة والعمليات التاريخية بالكامل؟")) return;
+            try {
+                await devApiCall('POST', '/api/developer/sql', { query: 'DELETE FROM audit_logs' });
+                alert('تم مسح سجل النشاط بنجاح!');
+                loadDiagnostics();
+            } catch (err) {
+                alert('فشل مسح السجلات: ' + err.message);
+            }
+        }
+
+        async function triggerDbBackup() {
+            try {
+                const res = await devApiCall('GET', '/api/developer/export');
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res, null, 4));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", `dev_clinic_backup_${new Date().toISOString().split('T')[0]}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+            } catch (err) {
+                alert('فشل تصدير النسخة الاحتياطية: ' + err.message);
+            }
+        }
+
+        async function triggerDbRestore(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (!confirm("⚠️ تحذير: سيتم مسح قاعدة البيانات الحالية واستعادة النسخة الاحتياطية المرفوعة. هل تريد الاستمرار؟")) return;
+                    
+                    const res = await devApiCall('POST', '/api/developer/import', data);
+                    alert(res.message || 'تم استعادة النسخة الاحتياطية بنجاح!');
+                    showDashboard();
+                } catch (err) {
+                    alert('فشل استيراد النسخة: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+
+        // Branding customizer logic
+        function toggleBrandingLogoFields() {
+            const logoType = document.getElementById('branding-logo-type').value;
+            document.getElementById('branding-logo-url-group').style.display = logoType === 'url' ? 'block' : 'none';
+            document.getElementById('branding-logo-icon-group').style.display = logoType === 'icon' ? 'block' : 'none';
+        }
+
+        async function loadBrandingFields() {
+            try {
+                const res = await devApiCall('POST', '/api/developer/sql', { query: 'SELECT * FROM config' });
+                const config = {};
+                res.data.forEach(cfg => { config[cfg.key] = cfg.value; });
+                
+                document.getElementById('color-primary-dark').value = config.themePrimaryColorDark || '#00f2fe';
+                document.getElementById('color-secondary-dark').value = config.themeSecondaryColorDark || '#059669';
+                document.getElementById('color-bg-dark').value = config.themeBgColorDark || '#0a0f1d';
+                document.getElementById('color-bg-sec-dark').value = config.themeBgSecondaryColorDark || '#0f172a';
+
+                document.getElementById('color-primary-light').value = config.themePrimaryColorLight || '#0284c7';
+                document.getElementById('color-secondary-light').value = config.themeSecondaryColorLight || '#0d9488';
+                document.getElementById('color-bg-light').value = config.themeBgColorLight || '#f1f5f9';
+                document.getElementById('color-bg-sec-light').value = config.themeBgSecondaryColorLight || '#ffffff';
+
+                document.getElementById('branding-logo-type').value = config.logoType || 'default';
+                document.getElementById('branding-logo-url').value = config.logoUrl || '';
+                document.getElementById('branding-logo-icon').value = config.logoIcon || 'fa-solid fa-laptop-medical';
+                document.getElementById('branding-logo-color').value = config.logoColor || '#00f2fe';
+
+                toggleBrandingLogoFields();
+                applyDynamicTheme(config);
+            } catch (err) {
+                console.error("Failed to load branding fields:", err);
+            }
+        }
+
+        async function saveBrandingCustomizer(e) {
+            e.preventDefault();
+            const config = {
+                themePrimaryColorDark: document.getElementById('color-primary-dark').value,
+                themeSecondaryColorDark: document.getElementById('color-secondary-dark').value,
+                themeBgColorDark: document.getElementById('color-bg-dark').value,
+                themeBgSecondaryColorDark: document.getElementById('color-bg-sec-dark').value,
+
+                themePrimaryColorLight: document.getElementById('color-primary-light').value,
+                themeSecondaryColorLight: document.getElementById('color-secondary-light').value,
+                themeBgColorLight: document.getElementById('color-bg-light').value,
+                themeBgSecondaryColorLight: document.getElementById('color-bg-sec-light').value,
+
+                logoType: document.getElementById('branding-logo-type').value,
+                logoUrl: document.getElementById('branding-logo-url').value,
+                logoIcon: document.getElementById('branding-logo-icon').value,
+                logoColor: document.getElementById('branding-logo-color').value
+            };
+
+            try {
+                for (const [key, value] of Object.entries(config)) {
+                    await devApiCall('POST', '/api/developer/sql', {
+                        query: 'INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)',
+                        params: [key, value]
+                    });
+                }
+                
+                alert('تم حفظ وتطبيق التعديلات البصرية بنجاح!');
+                applyDynamicTheme(config);
+            } catch (err) {
+                alert('فشل حفظ التعديلات: ' + err.message);
+            }
+        }
+
+        async function resetBrandingToDefaults() {
+            if (!confirm("هل تريد بالتأكيد تصفير ألوان ومظهر المنظومة للقيم الافتراضية؟")) return;
+            
+            document.getElementById('color-primary-dark').value = '#00f2fe';
+            document.getElementById('color-secondary-dark').value = '#059669';
+            document.getElementById('color-bg-dark').value = '#0a0f1d';
+            document.getElementById('color-bg-sec-dark').value = '#0f172a';
+
+            document.getElementById('color-primary-light').value = '#0284c7';
+            document.getElementById('color-secondary-light').value = '#0d9488';
+            document.getElementById('color-bg-light').value = '#f1f5f9';
+            document.getElementById('color-bg-sec-light').value = '#ffffff';
+
+            document.getElementById('branding-logo-type').value = 'default';
+            document.getElementById('branding-logo-url').value = '';
+            document.getElementById('branding-logo-icon').value = 'fa-solid fa-laptop-medical';
+            document.getElementById('branding-logo-color').value = '#00f2fe';
+
+            toggleBrandingLogoFields();
+
+            const defaultConfig = {
+                themePrimaryColorDark: '#00f2fe',
+                themeSecondaryColorDark: '#059669',
+                themeBgColorDark: '#0a0f1d',
+                themeBgSecondaryColorDark: '#0f172a',
+
+                themePrimaryColorLight: '#0284c7',
+                themeSecondaryColorLight: '#0d9488',
+                themeBgColorLight: '#f1f5f9',
+                themeBgSecondaryColorLight: '#ffffff',
+
+                logoType: 'default',
+                logoUrl: '',
+                logoIcon: 'fa-solid fa-laptop-medical',
+                logoColor: '#00f2fe'
+            };
+
+            try {
+                for (const [key, value] of Object.entries(defaultConfig)) {
+                    await devApiCall('POST', '/api/developer/sql', {
+                        query: 'INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)',
+                        params: [key, value]
+                    });
+                }
+                alert('تم استعادة المظهر الافتراضي وتطبيقه!');
+                applyDynamicTheme(defaultConfig);
+            } catch (err) {
+                alert('فشل تطبيق التصفير: ' + err.message);
+            }
+        }
+
+
+        // Modal triggers
+        function openDevModal(modalId) {
+            document.getElementById(modalId).classList.add('open');
+        }
+
+        function closeDevModal(modalId) {
+            document.getElementById(modalId).classList.remove('open');
+        }
+    </script>
+</body>
+</html>
